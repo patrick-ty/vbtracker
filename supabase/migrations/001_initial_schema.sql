@@ -20,7 +20,7 @@ create index idx_players_user_id on players(user_id);
 create table matches (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  opponent_name text not null,
+  opponent_name text not null default '',
   date date not null default current_date,
   location text not null default '',
   status text not null default 'in-progress' check (status in ('in-progress', 'completed')),

@@ -1,10 +1,141 @@
+export type TeamRole = 'head_coach' | 'assistant_coach' | 'viewer';
+
 export type Database = {
   public: {
     Tables: {
+      seasons: {
+        Row: {
+          id: string;
+          team_id: string;
+          name: string;
+          date_start: string | null;
+          date_end: string | null;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          team_id: string;
+          name: string;
+          date_start?: string | null;
+          date_end?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          team_id?: string;
+          name?: string;
+          date_start?: string | null;
+          date_end?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'seasons_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'teams';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      events: {
+        Row: {
+          id: string;
+          season_id: string;
+          name: string;
+          date_start: string;
+          date_end: string | null;
+          location: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          season_id: string;
+          name: string;
+          date_start?: string;
+          date_end?: string | null;
+          location?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          season_id?: string;
+          name?: string;
+          date_start?: string;
+          date_end?: string | null;
+          location?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'events_season_id_fkey';
+            columns: ['season_id'];
+            isOneToOne: false;
+            referencedRelation: 'seasons';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      teams: {
+        Row: {
+          id: string;
+          name: string;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          created_by?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      team_members: {
+        Row: {
+          id: string;
+          team_id: string;
+          user_id: string;
+          role: TeamRole;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          team_id: string;
+          user_id: string;
+          role: TeamRole;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          team_id?: string;
+          user_id?: string;
+          role?: TeamRole;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'team_members_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'teams';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       players: {
         Row: {
           id: string;
-          user_id: string;
+          team_id: string;
           jersey_number: number;
           first_name: string;
           last_name: string;
@@ -15,7 +146,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
-          user_id: string;
+          team_id: string;
           jersey_number: number;
           first_name: string;
           last_name: string;
@@ -26,7 +157,7 @@ export type Database = {
         };
         Update: {
           id?: string;
-          user_id?: string;
+          team_id?: string;
           jersey_number?: number;
           first_name?: string;
           last_name?: string;
@@ -35,12 +166,22 @@ export type Database = {
           active?: boolean;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'players_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'teams';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       matches: {
         Row: {
           id: string;
-          user_id: string;
+          team_id: string;
+          season_id: string | null;
+          event_id: string | null;
           opponent_name: string;
           date: string;
           location: string;
@@ -50,8 +191,10 @@ export type Database = {
         };
         Insert: {
           id?: string;
-          user_id: string;
-          opponent_name: string;
+          team_id: string;
+          season_id?: string | null;
+          event_id?: string | null;
+          opponent_name?: string;
           date?: string;
           location?: string;
           status?: 'in-progress' | 'completed';
@@ -60,7 +203,9 @@ export type Database = {
         };
         Update: {
           id?: string;
-          user_id?: string;
+          team_id?: string;
+          season_id?: string | null;
+          event_id?: string | null;
           opponent_name?: string;
           date?: string;
           location?: string;
@@ -68,7 +213,15 @@ export type Database = {
           is_serving_first?: boolean;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'matches_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'teams';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       sets: {
         Row: {

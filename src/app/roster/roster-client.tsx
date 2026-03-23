@@ -274,19 +274,19 @@ export function RosterClient({ initialPlayers }: RosterClientProps) {
 
   return (
     <div className="flex-1 flex flex-col">
-      <header className="bg-blue-700 text-white px-6 py-4 flex items-center justify-between">
+      <header className="bg-blue-700 text-white px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/" className="hover:text-blue-200 transition-colors">
             &larr;
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight">Roster</h1>
+          <h1 className="text-xl font-bold tracking-tight">Roster</h1>
         </div>
         <span className="text-blue-200 text-sm">
           {initialPlayers.length} player{initialPlayers.length !== 1 ? 's' : ''}
         </span>
       </header>
 
-      <main className="flex-1 p-6 max-w-3xl mx-auto w-full">
+      <main className="flex-1 p-5 max-w-5xl mx-auto w-full">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mb-4">
             {error}
@@ -300,20 +300,21 @@ export function RosterClient({ initialPlayers }: RosterClientProps) {
           </div>
         )}
 
-        <div className="space-y-2 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-6">
           {initialPlayers.map((player) =>
             editingId === player.id ? (
+              <div key={player.id} className="md:col-span-2">
               <PlayerForm
-                key={player.id}
                 player={player}
                 isPending={isPending}
                 onSubmit={(fd) => handleAction(fd, updatePlayer)}
                 onCancel={() => setEditingId(null)}
               />
+              </div>
             ) : deletingId === player.id ? (
               <div
                 key={player.id}
-                className="bg-red-50 border-2 border-red-300 rounded-xl p-4 flex items-center justify-between"
+                className="md:col-span-2 bg-red-50 border-2 border-red-300 rounded-xl p-4 flex items-center justify-between"
               >
                 <span>
                   Delete <strong>#{player.jersey_number} {player.first_name} {player.last_name}</strong>?
@@ -338,32 +339,32 @@ export function RosterClient({ initialPlayers }: RosterClientProps) {
             ) : (
               <div
                 key={player.id}
-                className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between"
+                className="bg-white border border-gray-200 rounded-lg p-3 flex items-center justify-between"
               >
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl font-bold text-blue-700 w-12 text-center">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-lg font-bold text-blue-700 w-8 text-center shrink-0">
                     {player.jersey_number}
                   </span>
-                  <PlayerAvatar player={player} />
-                  <div>
-                    <p className="font-semibold text-lg leading-tight">
+                  <PlayerAvatar player={player} size="sm" />
+                  <div className="min-w-0">
+                    <p className="font-semibold leading-tight truncate">
                       {player.first_name} {player.last_name}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs text-gray-500">
                       {POSITION_LABELS[player.position as PlayerPosition]}
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1 shrink-0 ml-2">
                   <button
                     onClick={() => { setEditingId(player.id); setShowAddForm(false); setDeletingId(null); }}
-                    className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium min-h-[44px] active:bg-gray-100"
+                    className="px-3 py-2 rounded-lg border border-gray-300 text-xs font-medium min-h-[44px] active:bg-gray-100"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => { setDeletingId(player.id); setEditingId(null); setShowAddForm(false); }}
-                    className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-sm font-medium min-h-[44px] active:bg-red-50"
+                    className="px-3 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-medium min-h-[44px] active:bg-red-50"
                   >
                     Remove
                   </button>
@@ -382,7 +383,7 @@ export function RosterClient({ initialPlayers }: RosterClientProps) {
         ) : (
           <button
             onClick={() => { setShowAddForm(true); setEditingId(null); setDeletingId(null); }}
-            className="w-full py-4 rounded-xl border-2 border-dashed border-gray-300 text-gray-500 font-medium text-lg hover:border-blue-400 hover:text-blue-600 transition-colors active:bg-blue-50 min-h-[56px]"
+            className="w-full py-3 rounded-lg border-2 border-dashed border-gray-300 text-gray-500 font-medium hover:border-blue-400 hover:text-blue-600 transition-colors active:bg-blue-50 min-h-[44px]"
           >
             + Add Player
           </button>

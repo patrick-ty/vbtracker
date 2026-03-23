@@ -1,22 +1,15 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
+import { requireTeam } from '@/lib/auth';
 import type { Database } from '@/lib/database.types';
 
 type PlayerRow = Database['public']['Tables']['players']['Row'];
 type PlayerInsert = Database['public']['Tables']['players']['Insert'];
 type PlayerUpdate = Database['public']['Tables']['players']['Update'];
 
-async function getAuthUserId() {
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) throw new Error('Unauthorized');
-  return { supabase, userId: user.id };
-}
-
 export async function getPlayers(): Promise<PlayerRow[]> {
-  const { supabase } = await getAuthUserId();
+  const { supabase } = await requireTeam();
   const { data, error } = await supabase
     .from('players')
     .select('*')
@@ -27,9 +20,9 @@ export async function getPlayers(): Promise<PlayerRow[]> {
 }
 
 export async function uploadAvatar(file: File, playerId: string): Promise<string> {
-  const { supabase, userId } = await getAuthUserId();
+  const { supabase, teamId } = await requireTeam();
 
-  const path = `${userId}/${playerId}.png`;
+  const path = `${teamId}/${playerId}.png`;
 
   const { error } = await supabase.storage
     .from('avatars')
@@ -45,10 +38,10 @@ export async function uploadAvatar(file: File, playerId: string): Promise<string
 }
 
 export async function addPlayer(formData: FormData) {
-  const { supabase, userId } = await getAuthUserId();
+  const { supabase, teamId } = await requireTeam();
 
   const player: PlayerInsert = {
-    user_id: userId,
+    team_id: teamId,
     jersey_number: Number(formData.get('jersey_number')),
     first_name: String(formData.get('first_name')).trim(),
     last_name: String(formData.get('last_name')).trim(),
@@ -63,7 +56,7 @@ export async function addPlayer(formData: FormData) {
 }
 
 export async function updatePlayer(formData: FormData) {
-  const { supabase } = await getAuthUserId();
+  const { supabase } = await requireTeam();
 
   const id = String(formData.get('id'));
   const avatarUrl = formData.get('avatar_url');
@@ -82,7 +75,7 @@ export async function updatePlayer(formData: FormData) {
 }
 
 export async function deletePlayer(formData: FormData) {
-  const { supabase } = await getAuthUserId();
+  const { supabase } = await requireTeam();
 
   const id = String(formData.get('id'));
   const { error } = await supabase.from('players').delete().eq('id', id);

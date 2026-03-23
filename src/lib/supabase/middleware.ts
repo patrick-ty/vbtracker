@@ -48,5 +48,22 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Check onboarding: new user with zero teams gets redirected
+  // (but /onboarding is always accessible for adding more teams)
+  if (user && !isPublicPath && request.nextUrl.pathname !== '/onboarding') {
+    const { data: membership } = await supabase
+      .from('team_members')
+      .select('id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .single();
+
+    if (!membership) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/onboarding';
+      return NextResponse.redirect(url);
+    }
+  }
+
   return supabaseResponse;
 }
