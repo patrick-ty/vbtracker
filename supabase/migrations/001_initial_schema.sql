@@ -8,7 +8,8 @@ create table players (
   jersey_number integer not null,
   first_name text not null,
   last_name text not null,
-  position text not null check (position in ('OH', 'MB', 'S', 'OPP', 'L', 'DS')),
+  position text not null check (position in ('OH', 'MB', 'S', 'OPP', 'L', 'DS', 'NONE')),
+  avatar_url text,
   active boolean not null default true,
   created_at timestamptz not null default now()
 );

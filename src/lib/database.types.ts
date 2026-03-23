@@ -8,7 +8,8 @@ export type Database = {
           jersey_number: number;
           first_name: string;
           last_name: string;
-          position: 'OH' | 'MB' | 'S' | 'OPP' | 'L' | 'DS';
+          position: 'OH' | 'MB' | 'S' | 'OPP' | 'L' | 'DS' | 'NONE';
+          avatar_url: string | null;
           active: boolean;
           created_at: string;
         };
@@ -18,7 +19,8 @@ export type Database = {
           jersey_number: number;
           first_name: string;
           last_name: string;
-          position: 'OH' | 'MB' | 'S' | 'OPP' | 'L' | 'DS';
+          position: 'OH' | 'MB' | 'S' | 'OPP' | 'L' | 'DS' | 'NONE';
+          avatar_url?: string | null;
           active?: boolean;
           created_at?: string;
         };
@@ -28,7 +30,8 @@ export type Database = {
           jersey_number?: number;
           first_name?: string;
           last_name?: string;
-          position?: 'OH' | 'MB' | 'S' | 'OPP' | 'L' | 'DS';
+          position?: 'OH' | 'MB' | 'S' | 'OPP' | 'L' | 'DS' | 'NONE';
+          avatar_url?: string | null;
           active?: boolean;
           created_at?: string;
         };

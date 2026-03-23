@@ -5,7 +5,7 @@ export type TouchType = 'serve' | 'pass' | 'set' | 'attack' | 'block' | 'dig';
 
 export type TouchScore = 0 | 1 | 2 | 3;
 
-export type PlayerPosition = 'OH' | 'MB' | 'S' | 'OPP' | 'L' | 'DS';
+export type PlayerPosition = 'OH' | 'MB' | 'S' | 'OPP' | 'L' | 'DS' | 'NONE';
 
 // UI labels
 export const TOUCH_TYPE_LABELS: Record<TouchType, string> = {
@@ -25,6 +25,7 @@ export const TOUCH_SCORE_LABELS: Record<TouchScore, string> = {
 };
 
 export const POSITION_LABELS: Record<PlayerPosition, string> = {
+  NONE: 'None',
   OH: 'Outside Hitter',
   MB: 'Middle Blocker',
   S: 'Setter',

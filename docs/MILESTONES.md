@@ -1,34 +1,39 @@
 # VBTracker — Milestone Plan
 
+Single-team app for one coach's roster (~13-15 players).
+Stack: Next.js 16, Supabase (Postgres + Auth), Zustand, Tailwind, Recharts.
 Each milestone is a deployable increment. Ship early, ship often.
 
 ---
 
-## Milestone 1: Skeleton App + Auth + CI/CD
-**Goal:** Deployable shell with authentication and automated pipeline.
+## Milestone 1: Skeleton App + Auth ✅
+**Goal:** Protected shell with authentication.
 
-- [ ] Auth system (email+password, Google Sign-On) via NextAuth.js
-- [ ] Basic protected layout (header, nav, auth guards)
-- [ ] Landing/login page
-- [ ] Dockerfile for Cloud Run
-- [ ] Cloud Build config (`cloudbuild.yaml`) triggered from `release` branch
-- [ ] Deploy skeleton to Google Cloud Run
-- [ ] Health check endpoint (`/api/health`)
+- [x] Auth system (email+password, Google SSO) via Supabase Auth
+- [x] Login + signup pages
+- [x] Auth middleware (session refresh, route protection)
+- [x] OAuth callback handler
+- [x] Protected dashboard with nav
+- [x] Health check endpoint (`/api/health`)
+- [x] Dockerfile + Cloud Build config (deployment deferred)
+- [x] SQL migration with 6 tables + RLS policies
 
-**Ship criteria:** User can sign in via Google or email, see a protected dashboard, deployed on Cloud Run.
+**Ship criteria:** User can sign in, see a protected dashboard. DB schema deployed.
 
 ---
 
-## Milestone 2: Team & Roster Management
-**Goal:** Create and manage teams with player rosters.
+## Milestone 2: Roster Management ✅
+**Goal:** Manage a roster of ~13-15 players.
 
-- [ ] Create/edit/delete teams
-- [ ] Add/edit/remove players (jersey #, name, position)
-- [ ] Team list page (`/teams`)
-- [ ] Team detail + roster page (`/teams/[id]`)
-- [ ] Data persists in IndexedDB
+- [x] `/roster` page — list players sorted by jersey number
+- [x] Add player form (jersey #, first name, last name, position)
+- [x] Edit player inline
+- [x] Delete player with confirmation
+- [x] Position selector (OH, MB, S, OPP, L, DS)
+- [x] CRUD via server actions against Supabase `players` table
+- [x] iPad-optimized touch targets (min 44px)
 
-**Ship criteria:** User can create a team, add 12+ players with jersey numbers, data survives page reload.
+**Ship criteria:** User can add 12+ players with jersey numbers and positions, data persists across sessions.
 
 ---
 
