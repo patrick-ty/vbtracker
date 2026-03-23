@@ -90,5 +90,4 @@ Run the contents of `supabase/migrations/002_teams.sql` in the Supabase SQL Edit
 5. Update storage policies for avatars
 
 ## Next Steps
-- Test the full flow: sign in → onboarding → add roster → create match → lineup
-- Milestone 4: Live Rally Entry Wizard
+- Superseded by devjournal-0005 — domain restructure continued in the same session
