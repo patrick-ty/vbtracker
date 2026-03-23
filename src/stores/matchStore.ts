@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
-import { db } from '@/lib/db';
-import type { Touch, TouchType, TouchScore, GameSet, Rally, Rotation } from '@/lib/types';
+import { createClient } from '@/lib/supabase/client';
+import type { TouchType, TouchScore } from '@/lib/types';
 
 interface CurrentTouch {
   type: TouchType | null;
@@ -9,13 +9,22 @@ interface CurrentTouch {
   playerJerseyNumber: number | null;
 }
 
+interface SetState {
+  id: string;
+  matchId: string;
+  setNumber: number;
+  ourScore: number;
+  theirScore: number;
+  status: 'in-progress' | 'completed';
+}
+
 interface MatchState {
   matchId: string | null;
-  currentSet: GameSet | null;
+  currentSet: SetState | null;
   currentRallyNumber: number;
   currentTouches: CurrentTouch[];
   isServing: boolean;
-  rotations: Record<number, number>; // position (1-6) → jersey number
+  rotations: Record<number, number>;
 
   // Actions
   startMatch: (matchId: string, isServing: boolean) => void;
@@ -55,7 +64,9 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   startSet: async (setNumber) => {
     const { matchId } = get();
     if (!matchId) return;
-    const newSet: GameSet = {
+
+    const supabase = createClient();
+    const newSet: SetState = {
       id: uuid(),
       matchId,
       setNumber,
@@ -63,7 +74,16 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       theirScore: 0,
       status: 'in-progress',
     };
-    await db.sets.add(newSet);
+
+    await supabase.from('sets').insert({
+      id: newSet.id,
+      match_id: matchId,
+      set_number: setNumber,
+      our_score: 0,
+      their_score: 0,
+      status: 'in-progress',
+    });
+
     set({ currentSet: newSet, currentRallyNumber: 1, currentTouches: [] });
   },
 
@@ -73,8 +93,6 @@ export const useMatchStore = create<MatchState>((set, get) => ({
 
   rotate: () => {
     const { rotations } = get();
-    // Standard volleyball rotation: each player moves one position
-    // 1→6, 6→5, 5→4, 4→3, 3→2, 2→1
     const newRotations: Record<number, number> = {};
     newRotations[1] = rotations[2] ?? 0;
     newRotations[2] = rotations[3] ?? 0;
@@ -90,7 +108,6 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     const touches = [...currentTouches];
     const idx = touches.length === 0 ? 0 : touches.length - 1;
     if (!touches[idx] || touches[idx].type !== null) {
-      // Start new touch entry
       touches.push({ ...EMPTY_TOUCH, type });
     } else {
       touches[idx] = { ...touches[idx], type };
@@ -102,8 +119,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     const { currentTouches } = get();
     if (currentTouches.length === 0) return;
     const touches = [...currentTouches];
-    const idx = touches.length - 1;
-    touches[idx] = { ...touches[idx], score };
+    touches[touches.length - 1] = { ...touches[touches.length - 1], score };
     set({ currentTouches: touches });
   },
 
@@ -111,16 +127,13 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     const { currentTouches } = get();
     if (currentTouches.length === 0) return;
     const touches = [...currentTouches];
-    const idx = touches.length - 1;
-    touches[idx] = { ...touches[idx], playerJerseyNumber: jerseyNumber };
+    touches[touches.length - 1] = { ...touches[touches.length - 1], playerJerseyNumber: jerseyNumber };
     set({ currentTouches: touches });
   },
 
   addTouch: () => {
-    // Finalize current touch and prepare for next
     const { currentTouches } = get();
     if (currentTouches.length >= 3) return;
-    // The current touch is already in the array, just signal readiness for next
     set({ currentTouches: [...currentTouches] });
   },
 
@@ -134,29 +147,32 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     const { currentSet, currentRallyNumber, currentTouches, isServing, rotations } = get();
     if (!currentSet) return;
 
+    const supabase = createClient();
     const rallyId = uuid();
-    const touches: Touch[] = currentTouches
+
+    // Insert rally
+    await supabase.from('rallies').insert({
+      id: rallyId,
+      set_id: currentSet.id,
+      rally_number: currentRallyNumber,
+      point_won: pointWon,
+    });
+
+    // Insert touches
+    const touchInserts = currentTouches
       .filter((t) => t.type !== null && t.score !== null && t.playerJerseyNumber !== null)
       .map((t, i) => ({
         id: uuid(),
-        rallyId,
-        touchNumber: i + 1,
+        rally_id: rallyId,
+        touch_number: i + 1,
         type: t.type!,
         score: t.score!,
-        playerJerseyNumber: t.playerJerseyNumber!,
+        player_jersey_number: t.playerJerseyNumber!,
       }));
 
-    const rally: Rally = {
-      id: rallyId,
-      setId: currentSet.id,
-      rallyNumber: currentRallyNumber,
-      pointWon,
-      touches,
-    };
-
-    // Save rally and touches to DB
-    await db.rallies.add(rally);
-    await db.touches.bulkAdd(touches);
+    if (touchInserts.length > 0) {
+      await supabase.from('touches').insert(touchInserts);
+    }
 
     // Update set score
     const updatedSet = { ...currentSet };
@@ -165,21 +181,21 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     } else {
       updatedSet.theirScore += 1;
     }
-    await db.sets.update(currentSet.id, {
-      ourScore: updatedSet.ourScore,
-      theirScore: updatedSet.theirScore,
-    });
+
+    await supabase.from('sets').update({
+      our_score: updatedSet.ourScore,
+      their_score: updatedSet.theirScore,
+    }).eq('id', currentSet.id);
 
     // Save rotation snapshot
-    const rotationCount = await db.rotations.where('setId').equals(currentSet.id).count();
-    await db.rotations.add({
+    await supabase.from('rotations').insert({
       id: uuid(),
-      setId: currentSet.id,
-      rotationNumber: rotationCount + 1,
-      positions: { ...rotations },
+      set_id: currentSet.id,
+      rotation_number: currentRallyNumber,
+      positions: rotations,
     });
 
-    // Check for sideout: we won the point while they were serving
+    // Check for sideout
     const sideout = pointWon && !isServing;
     const lostServe = !pointWon && isServing;
 
@@ -195,33 +211,35 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     const { currentSet, currentRallyNumber } = get();
     if (!currentSet || currentRallyNumber <= 1) return;
 
+    const supabase = createClient();
     const prevRallyNumber = currentRallyNumber - 1;
-    const rallies = await db.rallies
-      .where('setId')
-      .equals(currentSet.id)
-      .filter((r) => r.rallyNumber === prevRallyNumber)
-      .toArray();
 
-    if (rallies.length === 0) return;
+    // Find the rally to undo
+    const { data: rallies } = await supabase
+      .from('rallies')
+      .select('id, point_won')
+      .eq('set_id', currentSet.id)
+      .eq('rally_number', prevRallyNumber);
 
-    const rally = rallies[0];
+    if (!rallies || rallies.length === 0) return;
+    const rally = rallies[0] as { id: string; point_won: boolean };
 
-    // Remove touches
-    await db.touches.where('rallyId').equals(rally.id).delete();
-    // Remove rally
-    await db.rallies.delete(rally.id);
+    // Delete touches and rally
+    await supabase.from('touches').delete().eq('rally_id', rally.id);
+    await supabase.from('rallies').delete().eq('id', rally.id);
 
     // Revert score
     const updatedSet = { ...currentSet };
-    if (rally.pointWon) {
+    if (rally.point_won) {
       updatedSet.ourScore -= 1;
     } else {
       updatedSet.theirScore -= 1;
     }
-    await db.sets.update(currentSet.id, {
-      ourScore: updatedSet.ourScore,
-      theirScore: updatedSet.theirScore,
-    });
+
+    await supabase.from('sets').update({
+      our_score: updatedSet.ourScore,
+      their_score: updatedSet.theirScore,
+    }).eq('id', currentSet.id);
 
     set({
       currentSet: updatedSet,

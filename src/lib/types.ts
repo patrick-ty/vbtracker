@@ -1,73 +1,13 @@
+// Core enums and UI constants for the app
+// Database row types are in database.types.ts
+
 export type TouchType = 'serve' | 'pass' | 'set' | 'attack' | 'block' | 'dig';
 
 export type TouchScore = 0 | 1 | 2 | 3;
 
 export type PlayerPosition = 'OH' | 'MB' | 'S' | 'OPP' | 'L' | 'DS';
 
-export type MatchStatus = 'in-progress' | 'completed';
-
-export type SetStatus = 'in-progress' | 'completed';
-
-export interface Team {
-  id: string;
-  name: string;
-  season: string;
-  createdAt: string;
-}
-
-export interface Player {
-  id: string;
-  teamId: string;
-  jerseyNumber: number;
-  firstName: string;
-  lastName: string;
-  position: PlayerPosition;
-  active: boolean;
-}
-
-export interface Match {
-  id: string;
-  teamId: string;
-  opponentName: string;
-  date: string;
-  location: string;
-  status: MatchStatus;
-}
-
-export interface GameSet {
-  id: string;
-  matchId: string;
-  setNumber: number;
-  ourScore: number;
-  theirScore: number;
-  status: SetStatus;
-}
-
-export interface Touch {
-  id: string;
-  rallyId: string;
-  touchNumber: number;
-  type: TouchType;
-  score: TouchScore;
-  playerJerseyNumber: number;
-}
-
-export interface Rally {
-  id: string;
-  setId: string;
-  rallyNumber: number;
-  pointWon: boolean;
-  touches: Touch[];
-}
-
-export interface Rotation {
-  id: string;
-  setId: string;
-  rotationNumber: number;
-  positions: Record<number, number>; // position (1-6) → jersey number
-}
-
-// UI helpers
+// UI labels
 export const TOUCH_TYPE_LABELS: Record<TouchType, string> = {
   serve: 'SRV',
   pass: 'PAS',

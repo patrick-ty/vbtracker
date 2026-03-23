@@ -1,19 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Home() {
+  const router = useRouter();
+  const supabase = createClient();
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
+
   return (
     <div className="flex-1 flex flex-col">
       <header className="bg-blue-700 text-white px-6 py-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">VBTracker</h1>
-        <nav className="flex gap-4">
-          <Link href="/teams" className="hover:text-blue-200 transition-colors">
-            Teams
+        <nav className="flex items-center gap-4">
+          <Link href="/roster" className="hover:text-blue-200 transition-colors">
+            Roster
           </Link>
-          <Link href="/settings" className="hover:text-blue-200 transition-colors">
-            Settings
-          </Link>
+          <button
+            onClick={handleSignOut}
+            className="hover:text-blue-200 transition-colors"
+          >
+            Sign Out
+          </button>
         </nav>
       </header>
       <main className="flex-1 p-6 max-w-5xl mx-auto w-full">
@@ -25,10 +39,10 @@ export default function Home() {
             New Match
           </Link>
           <Link
-            href="/teams"
+            href="/roster"
             className="block bg-white border-2 border-gray-200 rounded-2xl p-8 text-center text-xl font-semibold hover:border-blue-400 transition-colors active:scale-[0.98] min-h-[120px] flex items-center justify-center"
           >
-            Manage Teams
+            Manage Roster
           </Link>
         </div>
       </main>
