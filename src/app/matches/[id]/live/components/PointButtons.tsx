@@ -29,22 +29,22 @@ export function PointButtons() {
           <button
             onClick={() => flipRallyPoint(editingRallyIndex, false)}
             disabled={isSaving || !rally.pointWon}
-            className={`py-3 rounded-xl font-bold text-base transition-colors min-h-[52px] ${
+            className={`py-3 rounded-xl font-bold text-lg transition-colors min-h-[52px] border-2 ${
               !rally.pointWon
-                ? 'bg-red-600 border-2 border-red-700 text-white'
-                : 'bg-red-50 border-2 border-red-300 text-red-700 hover:bg-red-100'
-            } disabled:opacity-50`}
+                ? 'bg-red-600 border-red-600 text-white shadow-md'
+                : 'bg-white border-red-200 text-red-600 hover:bg-red-50'
+            }`}
           >
             Point<br />Lost
           </button>
           <button
             onClick={() => flipRallyPoint(editingRallyIndex, true)}
             disabled={isSaving || rally.pointWon}
-            className={`py-3 rounded-xl font-bold text-base transition-colors min-h-[52px] ${
+            className={`py-3 rounded-xl font-bold text-lg transition-colors min-h-[52px] border-2 ${
               rally.pointWon
-                ? 'bg-green-600 border-2 border-green-700 text-white'
-                : 'bg-green-50 border-2 border-green-300 text-green-700 hover:bg-green-100'
-            } disabled:opacity-50`}
+                ? 'bg-green-600 border-green-600 text-white shadow-md'
+                : 'bg-white border-green-200 text-green-600 hover:bg-green-50'
+            }`}
           >
             Point<br />Won
           </button>
@@ -59,21 +59,21 @@ export function PointButtons() {
       <button
         onClick={() => logPoint(false)}
         disabled={isSaving}
-        className="py-4 rounded-xl bg-red-50 border-2 border-red-300 text-red-700 font-bold text-base hover:bg-red-100 active:bg-red-200 transition-colors min-h-[56px] disabled:opacity-50"
+        className="py-4 rounded-xl bg-red-600 border-2 border-red-600 text-white font-bold text-base hover:bg-red-700 active:bg-red-800 transition-colors min-h-[56px] disabled:opacity-50"
       >
         Point<br />Lost
       </button>
       <button
         onClick={() => ballOver()}
         disabled={isSaving || !hasTouches}
-        className="py-4 rounded-xl bg-gray-50 border-2 border-gray-300 text-gray-700 font-bold text-base hover:bg-gray-100 active:bg-gray-200 transition-colors min-h-[56px] disabled:opacity-30"
+        className="py-4 rounded-xl bg-white border-2 border-gray-300 text-gray-700 font-bold text-base hover:bg-gray-100 active:bg-gray-200 transition-colors min-h-[56px] disabled:opacity-30"
       >
         Ball Over
       </button>
       <button
         onClick={() => logPoint(true)}
         disabled={isSaving}
-        className="py-4 rounded-xl bg-green-50 border-2 border-green-300 text-green-700 font-bold text-base hover:bg-green-100 active:bg-green-200 transition-colors min-h-[56px] disabled:opacity-50"
+        className="py-4 rounded-xl bg-green-600 border-2 border-green-600 text-white font-bold text-base hover:bg-green-700 active:bg-green-800 transition-colors min-h-[56px] disabled:opacity-50"
       >
         Point<br />Won
       </button>
