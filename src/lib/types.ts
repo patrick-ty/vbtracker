@@ -58,10 +58,10 @@ export function getScoreOptions(type: TouchType | null): ScoreOption[] {
       ];
     default: // pass, set, attack
       return [
-        { value: 3, label: 'Perfect' },
-        { value: 2, label: 'Good' },
-        { value: 1, label: 'Poor' },
         { value: 0, label: 'Error' },
+        { value: 1, label: 'Poor' },
+        { value: 2, label: 'Good' },
+        { value: 3, label: 'Perfect' },
       ];
   }
 }
