@@ -169,8 +169,9 @@ export default async function LiveEntryPage({ params }: { params: Promise<{ id: 
     .single();
 
   let activeLineup: number[] = [];
+  let positions: Record<string, number> | null = null;
   if (rotData) {
-    const positions = (rotData as RotationRow).positions as Record<string, number>;
+    positions = (rotData as RotationRow).positions as Record<string, number>;
     activeLineup = Object.values(positions);
   }
 
@@ -202,6 +203,7 @@ export default async function LiveEntryPage({ params }: { params: Promise<{ id: 
       isServingFirst={m.is_serving_first}
       players={players}
       activeLineup={activeLineup}
+      positions={positions}
       initialRallyLog={initialRallyLog}
     />
   );

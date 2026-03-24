@@ -3,15 +3,26 @@ import { v4 as uuid } from 'uuid';
 import { createClient } from '@/lib/supabase/client';
 import type { TouchType, TouchScore } from '@/lib/types';
 
-interface Touch {
+// ─── Types ────────────────────────────────────────────────────────────
+
+export interface Touch {
   playerJerseyNumber: number;
   type: TouchType;
   score: TouchScore;
 }
 
-interface ServeData {
+export interface ServeData {
   serverJersey: number;
-  score: TouchScore;
+  score: TouchScore; // 3=ace, 2=in, 0=error
+}
+
+export interface CompletedRally {
+  rallyNumber: number;
+  pointWon: boolean;
+  serve: ServeData | null;
+  sequences: { isServe: boolean; touches: Touch[] }[];
+  ourScore: number;
+  theirScore: number;
 }
 
 interface SetState {
@@ -22,34 +33,27 @@ interface SetState {
   theirScore: number;
 }
 
-type EntryStep =
-  | 'serve_or_receive' // Start of rally: are we serving or receiving?
-  | 'serve_player'     // Pick who's serving
-  | 'serve_score'      // ACE / IN / ERROR
-  | 'outcome'          // After any action: Our Point / Their Point / Continue
-  | 'player'           // Pick player for touch
-  | 'type'             // Pick touch type
-  | 'score'            // Rate the touch
-  | 'sub_out'          // Sub: pick player coming in
-  | 'sub_in';          // Sub: pick player going out
+type SubState =
+  | null
+  | { step: 'pick_in' }
+  | { step: 'pick_out'; playerIn: number };
 
-interface CompletedRally {
-  rallyNumber: number;
-  pointWon: boolean;
-  serve: ServeData | null;
-  sequences: { isServe: boolean; touches: Touch[] }[];
-  ourScore: number;
-  theirScore: number;
-}
+type EditTarget =
+  | null
+  | { kind: 'serve' }
+  | { kind: 'touch'; index: number };
+
+// ─── Store ────────────────────────────────────────────────────────────
 
 interface MatchState {
+  // Match state
   matchId: string | null;
   currentSet: SetState | null;
   currentRallyNumber: number;
   isServing: boolean;
   activeLineup: number[];
 
-  // Completed rallies for display
+  // Rally log
   rallyLog: CompletedRally[];
 
   // Current rally
@@ -57,41 +61,61 @@ interface MatchState {
   currentSequenceNumber: number;
   completedTouches: Touch[];
   allSequences: { isServe: boolean; touches: Touch[] }[];
-  pendingPlayer: number | null;
-  pendingType: TouchType | null;
-  entryStep: EntryStep;
+
+  // Selection state (replaces entryStep + pending)
+  selectedPlayer: number | null;
+  selectedType: TouchType | null;
+  editTarget: EditTarget;
+  subState: SubState;
 
   // Guards
   isSaving: boolean;
-
-  // Sub
-  subIn: number | null;
   lastServer: number | null;
-
-  // Editing
-  editingTouchIndex: number | null; // null = not editing, -1 = editing serve, 0+ = touch index
 
   // Actions
   initMatch: (matchId: string, set: SetState, isServing: boolean, rallyNumber: number, lineup: number[], existingLog?: CompletedRally[]) => void;
-  chooseServe: () => void;
-  chooseReceive: () => void;
-  selectServer: (jerseyNumber: number) => void;
-  scoreServe: (score: TouchScore) => void;
-  selectPlayer: (jerseyNumber: number) => void;
+  toggleServing: () => void;
+
+  // Selection
+  selectPlayer: (jersey: number) => void;
   selectType: (type: TouchType) => void;
   selectScore: (score: TouchScore) => void;
-  clearPending: () => void;
-  continuePlay: () => void;
+  clearSelection: () => void;
+
+  // Editing
   editServe: () => void;
   editTouch: (index: number) => void;
+  deleteTouch: () => void;
+  deleteServe: () => void;
+  editRally: (rallyIndex: number) => void;
+  cancelEditRally: () => void;
+  saveEditRally: () => Promise<void>;
+
+  // Editing state
+  editingRallyIndex: number | null; // index into rallyLog, null = editing current rally
+
+  // Substitution
   startSub: () => void;
-  selectSubIn: (jerseyNumber: number) => void;
-  selectSubOut: (jerseyNumber: number) => void;
+  selectSubIn: (jersey: number) => void;
+  selectSubOut: (jersey: number) => void;
   cancelSub: () => void;
+
+  // Sequence
+  ballOver: () => void;
+
+  // Rally
   logPoint: (pointWon: boolean) => Promise<void>;
   undoLastRally: () => Promise<void>;
   reset: () => void;
 }
+
+// ─── Helpers ──────────────────────────────────────────────────────────
+
+function isServePhase(state: { serve: ServeData | null; isServing: boolean }): boolean {
+  return state.isServing && state.serve === null;
+}
+
+// ─── Create Store ─────────────────────────────────────────────────────
 
 export const useMatchStore = create<MatchState>((set, get) => ({
   matchId: null,
@@ -104,12 +128,12 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   currentSequenceNumber: 1,
   completedTouches: [],
   allSequences: [],
-  pendingPlayer: null,
-  pendingType: null,
-  entryStep: 'serve_or_receive',
-  editingTouchIndex: null,
+  selectedPlayer: null,
+  selectedType: null,
+  editTarget: null,
+  editingRallyIndex: null,
+  subState: null,
   isSaving: false,
-  subIn: null,
   lastServer: null,
 
   initMatch: (matchId, currentSet, isServing, rallyNumber, lineup, existingLog) => {
@@ -118,218 +142,337 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       currentRallyNumber: rallyNumber,
       activeLineup: lineup,
       rallyLog: existingLog ?? [],
-      serve: null,
-      currentSequenceNumber: 1,
-      completedTouches: [],
-      allSequences: [],
-      pendingPlayer: null,
-      pendingType: null,
-      entryStep: 'serve_or_receive',
-      editingTouchIndex: null,
-      isSaving: false,
-      subIn: null,
-      lastServer: null,
+      serve: null, currentSequenceNumber: 1,
+      completedTouches: [], allSequences: [],
+      selectedPlayer: null, selectedType: null,
+      editTarget: null, editingRallyIndex: null,
+      subState: null, isSaving: false, lastServer: null,
     });
   },
 
-  chooseServe: () => {
-    set({ isServing: true, entryStep: 'serve_player' });
+  toggleServing: () => {
+    const { serve } = get();
+    // Only allow toggle if serve hasn't been recorded yet
+    if (serve) return;
+    set((s) => ({ isServing: !s.isServing }));
   },
 
-  chooseReceive: () => {
-    set({ isServing: false, entryStep: 'player' });
-  },
+  // ─── Selection Actions ──────────────────────────────────────────
 
-  selectServer: (jerseyNumber) => {
-    set({ pendingPlayer: jerseyNumber, entryStep: 'serve_score' });
-  },
-
-  scoreServe: (score) => {
-    const { pendingPlayer, editingTouchIndex, completedTouches, allSequences } = get();
-    if (pendingPlayer === null) return;
-
-    const serve: ServeData = { serverJersey: pendingPlayer, score };
-
-    // If editing an existing serve, just update it and return to previous state
-    if (editingTouchIndex === -1) {
-      const hasFollowingData = allSequences.length > 0 || completedTouches.length > 0;
-      set({
-        serve,
-        pendingPlayer: null,
-        editingTouchIndex: null,
-        entryStep: hasFollowingData ? 'outcome' : (score === 0 || score === 3) ? 'outcome' : 'player',
-      });
-      return;
-    }
-
-    if (score === 0 || score === 3) {
-      // Ace or Error — set serve and immediately log point in one update
-      const pointWon = score === 3;
-      set({ serve, pendingPlayer: null, editingTouchIndex: null });
-      // logPoint reads serve from store — it's now set
-      get().logPoint(pointWon);
-      return;
-    }
-
-    set({
-      serve,
-      pendingPlayer: null,
-      editingTouchIndex: null,
-      currentSequenceNumber: 2,
-      entryStep: 'player',
-    });
-  },
-
-  selectPlayer: (jerseyNumber) => {
-    const { completedTouches } = get();
-    if (completedTouches.length >= 3) return;
-
-    set({
-      pendingPlayer: jerseyNumber,
-      pendingType: null,
-      entryStep: 'type',
-    });
+  selectPlayer: (jersey) => {
+    set({ selectedPlayer: jersey, selectedType: null });
   },
 
   selectType: (type) => {
-    set({ pendingType: type, entryStep: 'score' });
+    set({ selectedType: type });
   },
 
   selectScore: (score) => {
-    const { completedTouches, pendingPlayer, pendingType, editingTouchIndex } = get();
-    if (pendingPlayer === null || pendingType === null) return;
+    const { selectedPlayer, selectedType, isServing, serve, completedTouches, allSequences, currentSequenceNumber, editTarget } = get();
+    if (selectedPlayer === null) return;
+
+    // ── Serve phase: committing a serve ──
+    if (isServePhase({ serve: get().serve, isServing }) && !editTarget) {
+      const newServe: ServeData = { serverJersey: selectedPlayer, score };
+      set({ serve: newServe, selectedPlayer: null, selectedType: null });
+
+      // Ace → auto our point
+      if (score === 3) {
+        get().logPoint(true);
+        return;
+      }
+      // Error → auto their point
+      if (score === 0) {
+        get().logPoint(false);
+        return;
+      }
+      // In → continue to touch entry, advance sequence
+      set({ currentSequenceNumber: 2 });
+      return;
+    }
+
+    // ── Editing serve ──
+    if (editTarget?.kind === 'serve') {
+      const newServe: ServeData = { serverJersey: selectedPlayer, score };
+      set({ serve: newServe, selectedPlayer: null, selectedType: null, editTarget: null });
+      return;
+    }
+
+    // ── Touch phase: committing a touch ──
+    if (!selectedType) return;
 
     const newTouch: Touch = {
-      playerJerseyNumber: pendingPlayer,
-      type: pendingType,
+      playerJerseyNumber: selectedPlayer,
+      type: selectedType,
       score,
     };
 
-    // Editing existing touch — replace in-place
-    if (editingTouchIndex !== null && editingTouchIndex >= 0) {
+    // Editing existing touch
+    if (editTarget?.kind === 'touch') {
       const updated = [...completedTouches];
-      updated[editingTouchIndex] = newTouch;
-      set({
-        completedTouches: updated,
-        pendingPlayer: null,
-        pendingType: null,
-        editingTouchIndex: null,
-        entryStep: 'outcome',
-      });
+      updated[editTarget.index] = newTouch;
+      set({ completedTouches: updated, selectedPlayer: null, selectedType: null, editTarget: null });
       return;
     }
 
-    // New touch
-    if (completedTouches.length >= 3) return;
+    // New touch — auto-manage sequences
+    let newTouches = [...completedTouches];
+    let newAllSeqs = [...allSequences];
+    let newSeqNum = currentSequenceNumber;
+
+    // If current sequence is full (3 touches), close it and start new one
+    if (newTouches.length >= 3) {
+      newAllSeqs.push({ isServe: false, touches: newTouches });
+      newTouches = [];
+      newSeqNum++;
+    }
+
+    newTouches.push(newTouch);
 
     set({
-      completedTouches: [...completedTouches, newTouch],
-      pendingPlayer: null,
-      pendingType: null,
-      editingTouchIndex: null,
-      entryStep: 'outcome',
+      completedTouches: newTouches,
+      allSequences: newAllSeqs,
+      currentSequenceNumber: newSeqNum,
+      selectedPlayer: null,
+      selectedType: null,
     });
   },
 
-  clearPending: () => {
-    const { completedTouches, serve, isServing } = get();
-    let step: EntryStep = 'player';
-    if (!serve && !completedTouches.length) step = 'serve_or_receive';
-    else if (completedTouches.length >= 3) step = 'outcome';
-    set({ pendingPlayer: null, pendingType: null, editingTouchIndex: null, entryStep: step });
+  clearSelection: () => {
+    set({ selectedPlayer: null, selectedType: null, editTarget: null });
   },
 
-  // After choosing "Continue" on the outcome screen
-  continuePlay: () => {
-    const { completedTouches, allSequences, currentSequenceNumber, serve } = get();
+  // ─── Edit Actions ───────────────────────────────────────────────
 
-    // If we just scored a serve (no touches yet), move to touch entry
-    if (completedTouches.length === 0 && serve) {
-      set({
-        currentSequenceNumber: 2,
-        entryStep: 'player',
-      });
-      return;
-    }
-
-    // If current sequence has 3 touches, close it and start a new one
-    // (ball went over the net and came back)
-    if (completedTouches.length >= 3) {
-      set({
-        allSequences: [...allSequences, { isServe: false, touches: completedTouches }],
-        completedTouches: [],
-        currentSequenceNumber: currentSequenceNumber + 1,
-        entryStep: 'player',
-      });
-      return;
-    }
-
-    // Otherwise keep adding to current sequence
-    set({ entryStep: 'player' });
-  },
-
-  // Edit existing serve — reopen serve_score modal
   editServe: () => {
     const { serve } = get();
     if (!serve) return;
     set({
-      pendingPlayer: serve.serverJersey,
-      editingTouchIndex: -1,
-      entryStep: 'serve_score',
+      selectedPlayer: serve.serverJersey,
+      selectedType: null,
+      editTarget: { kind: 'serve' },
     });
   },
 
-  // Edit existing touch — reopen type modal with that touch's data
   editTouch: (index) => {
     const { completedTouches } = get();
     const touch = completedTouches[index];
     if (!touch) return;
     set({
-      pendingPlayer: touch.playerJerseyNumber,
-      pendingType: touch.type,
-      editingTouchIndex: index,
-      entryStep: 'type',
+      selectedPlayer: touch.playerJerseyNumber,
+      selectedType: touch.type,
+      editTarget: { kind: 'touch', index },
     });
   },
 
+  deleteTouch: () => {
+    const { editTarget, completedTouches } = get();
+    if (!editTarget || editTarget.kind !== 'touch') return;
+    const updated = completedTouches.filter((_, i) => i !== editTarget.index);
+    set({
+      completedTouches: updated,
+      selectedPlayer: null,
+      selectedType: null,
+      editTarget: null,
+    });
+  },
+
+  deleteServe: () => {
+    const { editTarget } = get();
+    if (!editTarget || editTarget.kind !== 'serve') return;
+    set({
+      serve: null,
+      selectedPlayer: null,
+      selectedType: null,
+      editTarget: null,
+    });
+  },
+
+  // ─── Rally Editing ───────────────────────────────────────────────
+
+  editRally: (rallyIndex) => {
+    const { rallyLog, serve, completedTouches } = get();
+    const rally = rallyLog[rallyIndex];
+    if (!rally) return;
+
+    // Load the rally's data into the editing state
+    const serveSeq = rally.sequences.find((s) => s.isServe);
+    const touchSeqs = rally.sequences.filter((s) => !s.isServe);
+
+    // All touch sequences except the last become allSequences, last becomes completedTouches
+    const allSeqs = touchSeqs.slice(0, -1).map((s) => ({ isServe: false, touches: s.touches.map((t) => ({ ...t })) }));
+    const lastSeq = touchSeqs[touchSeqs.length - 1];
+    const lastTouches = lastSeq ? lastSeq.touches.map((t) => ({ ...t })) : [];
+
+    set({
+      editingRallyIndex: rallyIndex,
+      serve: rally.serve ? { ...rally.serve } : null,
+      isServing: rally.serve !== null,
+      allSequences: allSeqs,
+      completedTouches: lastTouches,
+      currentSequenceNumber: touchSeqs.length + (rally.serve ? 1 : 0),
+      selectedPlayer: null,
+      selectedType: null,
+      editTarget: null,
+    });
+  },
+
+  cancelEditRally: () => {
+    set({
+      editingRallyIndex: null,
+      serve: null,
+      allSequences: [],
+      completedTouches: [],
+      currentSequenceNumber: 1,
+      selectedPlayer: null,
+      selectedType: null,
+      editTarget: null,
+    });
+  },
+
+  saveEditRally: async () => {
+    const { editingRallyIndex, rallyLog, serve, completedTouches, allSequences, currentSet, isSaving } = get();
+    if (editingRallyIndex === null || !currentSet || isSaving) return;
+    set({ isSaving: true });
+
+    const rally = rallyLog[editingRallyIndex];
+    const supabase = createClient();
+
+    // Delete old sequences and touches for this rally
+    // First find the rally in DB by set_id + rally_number
+    const { data: dbRallies } = await supabase
+      .from('rallies')
+      .select('id')
+      .eq('set_id', currentSet.id)
+      .eq('rally_number', rally.rallyNumber);
+
+    if (dbRallies && dbRallies.length > 0) {
+      const rallyId = dbRallies[0].id;
+
+      // Delete old sequences + touches
+      const { data: oldSeqs } = await supabase
+        .from('sequences')
+        .select('id')
+        .eq('rally_id', rallyId);
+
+      if (oldSeqs && oldSeqs.length > 0) {
+        await supabase.from('touches').delete().in('sequence_id', oldSeqs.map((s) => s.id));
+        await supabase.from('sequences').delete().eq('rally_id', rallyId);
+      }
+
+      // Rebuild sequences
+      const seqsToSave: { isServe: boolean; touches: typeof completedTouches }[] = [];
+
+      if (serve) {
+        seqsToSave.push({
+          isServe: true,
+          touches: [{ playerJerseyNumber: serve.serverJersey, type: 'serve' as any, score: serve.score }],
+        });
+      }
+      seqsToSave.push(...allSequences);
+      if (completedTouches.length > 0) {
+        seqsToSave.push({ isServe: false, touches: completedTouches });
+      }
+
+      for (let i = 0; i < seqsToSave.length; i++) {
+        const seq = seqsToSave[i];
+        const seqId = uuid();
+        await supabase.from('sequences').insert({
+          id: seqId,
+          rally_id: rallyId,
+          sequence_number: i + 1,
+          is_serve: seq.isServe,
+        });
+        if (seq.touches.length > 0) {
+          await supabase.from('touches').insert(
+            seq.touches.map((t, j) => ({
+              id: uuid(),
+              sequence_id: seqId,
+              touch_number: j + 1,
+              type: t.type,
+              score: t.score,
+              player_jersey_number: t.playerJerseyNumber,
+            }))
+          );
+        }
+      }
+
+      // Update rally log entry
+      const updatedLog = [...rallyLog];
+      updatedLog[editingRallyIndex] = {
+        ...rally,
+        serve,
+        sequences: seqsToSave,
+      };
+
+      set({
+        rallyLog: updatedLog,
+        editingRallyIndex: null,
+        serve: null,
+        allSequences: [],
+        completedTouches: [],
+        currentSequenceNumber: 1,
+        selectedPlayer: null,
+        selectedType: null,
+        editTarget: null,
+        isSaving: false,
+      });
+    } else {
+      set({ isSaving: false });
+    }
+  },
+
+  // ─── Substitution ───────────────────────────────────────────────
+
   startSub: () => {
-    set({ entryStep: 'sub_out', subIn: null });
+    set({ subState: { step: 'pick_in' }, selectedPlayer: null, selectedType: null });
   },
 
-  selectSubIn: (jerseyNumber) => {
-    set({ subIn: jerseyNumber, entryStep: 'sub_in' });
+  selectSubIn: (jersey) => {
+    set({ subState: { step: 'pick_out', playerIn: jersey } });
   },
 
-  selectSubOut: (jerseyNumber) => {
-    const { currentSet, currentRallyNumber, activeLineup, subIn, serve, isServing, completedTouches } = get();
-    if (!currentSet || subIn === null) return;
+  selectSubOut: (jersey) => {
+    const { currentSet, currentRallyNumber, activeLineup, subState } = get();
+    if (!currentSet || !subState || subState.step !== 'pick_out') return;
 
-    const newLineup = activeLineup.map((j) => j === jerseyNumber ? subIn : j);
+    const playerIn = subState.playerIn;
+    const newLineup = activeLineup.map((j) => j === jersey ? playerIn : j);
 
+    // Save to DB
     const supabase = createClient();
     supabase.from('substitutions').insert({
       set_id: currentSet.id,
       rally_number: currentRallyNumber,
-      player_out: jerseyNumber,
-      player_in: subIn,
+      player_out: jersey,
+      player_in: playerIn,
     }).then(({ error }) => {
       if (error) console.error('Failed to save substitution:', error);
     });
 
-    // Figure out where to go back to
-    let step: EntryStep = 'player';
-    if (!serve && !completedTouches.length) step = 'serve_or_receive';
-
-    set({ activeLineup: newLineup, subIn: null, entryStep: step });
+    set({ activeLineup: newLineup, subState: null });
   },
 
   cancelSub: () => {
-    const { serve, isServing, completedTouches } = get();
-    let step: EntryStep = 'player';
-    if (!serve && !completedTouches.length) step = 'serve_or_receive';
-    else if (completedTouches.length >= 3) step = 'outcome';
-    set({ subIn: null, entryStep: step });
+    set({ subState: null });
   },
+
+  // ─── Sequence Management ─────────────────────────────────────────
+
+  ballOver: () => {
+    const { completedTouches, allSequences, currentSequenceNumber } = get();
+    if (completedTouches.length === 0) return;
+
+    set({
+      allSequences: [...allSequences, { isServe: false, touches: completedTouches }],
+      completedTouches: [],
+      currentSequenceNumber: currentSequenceNumber + 1,
+      selectedPlayer: null,
+      selectedType: null,
+    });
+  },
+
+  // ─── Rally Persistence ──────────────────────────────────────────
 
   logPoint: async (pointWon) => {
     const { currentSet, currentRallyNumber, serve, completedTouches, allSequences, isServing, isSaving } = get();
@@ -339,6 +482,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     const supabase = createClient();
     const rallyId = uuid();
 
+    // Insert rally
     await supabase.from('rallies').insert({
       id: rallyId,
       set_id: currentSet.id,
@@ -347,17 +491,13 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       server_jersey_number: serve?.serverJersey ?? null,
     });
 
-    // Build sequences
+    // Build sequences to save
     const seqsToSave: { isServe: boolean; touches: Touch[] }[] = [];
 
     if (serve) {
       seqsToSave.push({
         isServe: true,
-        touches: [{
-          playerJerseyNumber: serve.serverJersey,
-          type: 'serve' as TouchType,
-          score: serve.score,
-        }],
+        touches: [{ playerJerseyNumber: serve.serverJersey, type: 'serve' as TouchType, score: serve.score }],
       });
     }
 
@@ -367,6 +507,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       seqsToSave.push({ isServe: false, touches: completedTouches });
     }
 
+    // Save sequences and touches
     for (let i = 0; i < seqsToSave.length; i++) {
       const seq = seqsToSave[i];
       const seqId = uuid();
@@ -392,6 +533,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       }
     }
 
+    // Update score
     const newOurScore = currentSet.ourScore + (pointWon ? 1 : 0);
     const newTheirScore = currentSet.theirScore + (pointWon ? 0 : 1);
 
@@ -400,11 +542,10 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       their_score: newTheirScore,
     }).eq('id', currentSet.id);
 
-    const sideout = pointWon && !isServing;
-    const lostServe = !pointWon && isServing;
-    const newIsServing = sideout ? true : lostServe ? false : isServing;
+    // Win point → we serve next. Lose point → we receive.
+    const newIsServing = pointWon;
 
-    // Add to rally log for display
+    // Add to rally log
     const completedRally: CompletedRally = {
       rallyNumber: currentRallyNumber,
       pointWon,
@@ -422,9 +563,9 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       currentSequenceNumber: 1,
       completedTouches: [],
       allSequences: [],
-      pendingPlayer: null,
-      pendingType: null,
-      entryStep: 'serve_or_receive',
+      selectedPlayer: null,
+      selectedType: null,
+      editTarget: null,
       isSaving: false,
       isServing: newIsServing,
       lastServer: serve?.serverJersey ?? get().lastServer,
@@ -432,7 +573,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   },
 
   undoLastRally: async () => {
-    const { currentSet, currentRallyNumber, isServing } = get();
+    const { currentSet, currentRallyNumber } = get();
     if (!currentSet || currentRallyNumber <= 1) return;
 
     const supabase = createClient();
@@ -447,6 +588,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     if (!rallies || rallies.length === 0) return;
     const rally = rallies[0] as { id: string; point_won: boolean };
 
+    // Delete sequences and touches
     const { data: seqs } = await supabase
       .from('sequences')
       .select('id')
@@ -476,24 +618,30 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       rallyLog: get().rallyLog.slice(0, -1),
       currentSet: { ...currentSet, ourScore: newOurScore, theirScore: newTheirScore },
       currentRallyNumber: prevRallyNumber,
-      serve: null,
-      currentSequenceNumber: 1,
-      completedTouches: [],
-      allSequences: [],
-      pendingPlayer: null,
-      pendingType: null,
-      entryStep: 'serve_or_receive',
+      serve: null, currentSequenceNumber: 1,
+      completedTouches: [], allSequences: [],
+      selectedPlayer: null, selectedType: null,
+      editTarget: null,
     });
   },
 
   reset: () => {
     set({
       matchId: null, currentSet: null, currentRallyNumber: 1,
-      isServing: false, activeLineup: [], rallyLog: [], isSaving: false,
+      isServing: false, activeLineup: [], rallyLog: [],
       serve: null, currentSequenceNumber: 1,
       completedTouches: [], allSequences: [],
-      pendingPlayer: null, pendingType: null,
-      entryStep: 'serve_or_receive', subIn: null, lastServer: null,
+      selectedPlayer: null, selectedType: null,
+      editTarget: null, editingRallyIndex: null, subState: null,
+      isSaving: false, lastServer: null,
     });
   },
 }));
+
+// ─── Selectors ────────────────────────────────────────────────────────
+
+export function usePhase() {
+  const serve = useMatchStore((s) => s.serve);
+  const isServing = useMatchStore((s) => s.isServing);
+  return isServing && !serve ? 'serve_entry' : 'touch_entry';
+}
