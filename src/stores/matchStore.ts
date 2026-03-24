@@ -90,6 +90,7 @@ interface MatchState {
   editRally: (rallyIndex: number) => void;
   cancelEditRally: () => void;
   saveEditRally: () => Promise<void>;
+  deleteRally: (rallyIndex: number) => Promise<void>;
 
   // Editing state
   editingRallyIndex: number | null; // index into rallyLog, null = editing current rally
@@ -420,6 +421,69 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     } else {
       set({ isSaving: false });
     }
+  },
+
+  deleteRally: async (rallyIndex) => {
+    const { rallyLog, currentSet, currentRallyNumber, isSaving } = get();
+    if (!currentSet || isSaving) return;
+    const rally = rallyLog[rallyIndex];
+    if (!rally) return;
+
+    set({ isSaving: true });
+    const supabase = createClient();
+
+    // Find rally in DB
+    const { data: dbRallies } = await supabase
+      .from('rallies')
+      .select('id')
+      .eq('set_id', currentSet.id)
+      .eq('rally_number', rally.rallyNumber);
+
+    if (dbRallies && dbRallies.length > 0) {
+      const rallyId = dbRallies[0].id;
+
+      // Delete sequences + touches
+      const { data: seqs } = await supabase
+        .from('sequences')
+        .select('id')
+        .eq('rally_id', rallyId);
+
+      if (seqs && seqs.length > 0) {
+        await supabase.from('touches').delete().in('sequence_id', seqs.map((s) => s.id));
+        await supabase.from('sequences').delete().eq('rally_id', rallyId);
+      }
+
+      await supabase.from('rallies').delete().eq('id', rallyId);
+    }
+
+    // Adjust score
+    const scoreDelta = rally.pointWon ? -1 : 0;
+    const theirDelta = rally.pointWon ? 0 : -1;
+    const newOurScore = currentSet.ourScore + scoreDelta;
+    const newTheirScore = currentSet.theirScore + theirDelta;
+
+    await supabase.from('sets').update({
+      our_score: newOurScore,
+      their_score: newTheirScore,
+    }).eq('id', currentSet.id);
+
+    // Rebuild rally log with corrected running scores
+    const newLog = rallyLog.filter((_, i) => i !== rallyIndex);
+    let runOurs = 0;
+    let runTheirs = 0;
+    for (const r of newLog) {
+      if (r.pointWon) runOurs++;
+      else runTheirs++;
+      r.ourScore = runOurs;
+      r.theirScore = runTheirs;
+    }
+
+    set({
+      rallyLog: newLog,
+      currentSet: { ...currentSet, ourScore: newOurScore, theirScore: newTheirScore },
+      editingRallyIndex: null,
+      isSaving: false,
+    });
   },
 
   // ─── Substitution ───────────────────────────────────────────────

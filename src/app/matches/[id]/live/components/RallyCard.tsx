@@ -12,6 +12,8 @@ interface RallyCardProps {
 
 export function RallyCard({ rally, index }: RallyCardProps) {
   const editRally = useMatchStore((s) => s.editRally);
+  const deleteRally = useMatchStore((s) => s.deleteRally);
+  const cancelEditRally = useMatchStore((s) => s.cancelEditRally);
   const editingRallyIndex = useMatchStore((s) => s.editingRallyIndex);
   const editTarget = useMatchStore((s) => s.editTarget);
   const editServe = useMatchStore((s) => s.editServe);
@@ -19,6 +21,7 @@ export function RallyCard({ rally, index }: RallyCardProps) {
   const deleteServe = useMatchStore((s) => s.deleteServe);
   const deleteTouch = useMatchStore((s) => s.deleteTouch);
   const clearSelection = useMatchStore((s) => s.clearSelection);
+  const isSaving = useMatchStore((s) => s.isSaving);
   const isEditing = editingRallyIndex === index;
 
   // When editing this rally, show the live state from the store
@@ -149,6 +152,24 @@ export function RallyCard({ rally, index }: RallyCardProps) {
           </div>
         )}
       </div>
+
+      {/* Delete rally button when editing */}
+      {isEditing && (
+        <div className="flex items-center justify-end gap-2 mt-3 pt-2 border-t border-blue-200">
+          <span
+            onClick={(e) => { e.stopPropagation(); cancelEditRally(); }}
+            className="text-xs text-gray-500 hover:text-gray-700 font-medium cursor-pointer px-3 py-1.5 rounded-lg hover:bg-gray-100"
+          >
+            Cancel
+          </span>
+          <span
+            onClick={(e) => { e.stopPropagation(); if (!isSaving) deleteRally(index); }}
+            className="text-xs text-red-600 hover:text-red-800 font-bold cursor-pointer px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200"
+          >
+            Delete Rally
+          </span>
+        </div>
+      )}
     </button>
   );
 }
