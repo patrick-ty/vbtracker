@@ -35,7 +35,7 @@ export function PointButtons() {
                 : 'bg-red-50 border-2 border-red-300 text-red-700 hover:bg-red-100'
             } disabled:opacity-50`}
           >
-            Lost Point
+            Point<br />Lost
           </button>
           <button
             onClick={() => flipRallyPoint(editingRallyIndex, true)}
@@ -46,7 +46,7 @@ export function PointButtons() {
                 : 'bg-green-50 border-2 border-green-300 text-green-700 hover:bg-green-100'
             } disabled:opacity-50`}
           >
-            Won Point
+            Point<br />Won
           </button>
         </div>
       </div>
