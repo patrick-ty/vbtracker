@@ -31,7 +31,7 @@ export function PointButtons() {
             disabled={isSaving || !rally.pointWon}
             className={`py-3 rounded-xl font-bold text-base transition-colors min-h-[52px] ${
               !rally.pointWon
-                ? 'bg-red-200 border-2 border-red-400 text-red-800'
+                ? 'bg-red-600 border-2 border-red-700 text-white'
                 : 'bg-red-50 border-2 border-red-300 text-red-700 hover:bg-red-100'
             } disabled:opacity-50`}
           >
@@ -42,7 +42,7 @@ export function PointButtons() {
             disabled={isSaving || rally.pointWon}
             className={`py-3 rounded-xl font-bold text-base transition-colors min-h-[52px] ${
               rally.pointWon
-                ? 'bg-green-200 border-2 border-green-400 text-green-800'
+                ? 'bg-green-600 border-2 border-green-700 text-white'
                 : 'bg-green-50 border-2 border-green-300 text-green-700 hover:bg-green-100'
             } disabled:opacity-50`}
           >
