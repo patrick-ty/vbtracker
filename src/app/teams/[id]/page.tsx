@@ -128,11 +128,16 @@ export default async function TeamDashboardPage({ params }: { params: Promise<{ 
             />
           </div>
         </div>
-        <UserMenu
-          email={user.email ?? ''}
-          activeTeamId={teamId}
-          teams={teams.map((t) => ({ teamId: t.teamId, teamName: t.teamName }))}
-        />
+        <div className="flex items-center gap-4">
+          <Link href={`/teams/${teamId}/roster`} className="text-sm text-blue-200 hover:text-white transition-colors">
+            Roster
+          </Link>
+          <UserMenu
+            email={user.email ?? ''}
+            activeTeamId={teamId}
+            teams={teams.map((t) => ({ teamId: t.teamId, teamName: t.teamName }))}
+          />
+        </div>
       </header>
 
       <DashboardClient

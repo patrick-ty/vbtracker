@@ -8,11 +8,14 @@ type PlayerRow = Database['public']['Tables']['players']['Row'];
 type PlayerInsert = Database['public']['Tables']['players']['Insert'];
 type PlayerUpdate = Database['public']['Tables']['players']['Update'];
 
-export async function getPlayers(): Promise<PlayerRow[]> {
-  const { supabase } = await requireTeam();
+export async function getPlayers(teamId?: string): Promise<PlayerRow[]> {
+  const ctx = await requireTeam();
+  const { supabase } = ctx;
+  const tid = teamId ?? ctx.teamId;
   const { data, error } = await supabase
     .from('players')
     .select('*')
+    .eq('team_id', tid)
     .order('jersey_number', { ascending: true });
 
   if (error) throw new Error(error.message);

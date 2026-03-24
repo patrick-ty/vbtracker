@@ -233,9 +233,11 @@ function PlayerAvatar({ player, size = 'md' }: { player: Pick<Player, 'avatar_ur
 
 interface RosterClientProps {
   initialPlayers: Player[];
+  teamId?: string;
+  teamName?: string;
 }
 
-export function RosterClient({ initialPlayers }: RosterClientProps) {
+export function RosterClient({ initialPlayers, teamId, teamName }: RosterClientProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -276,10 +278,13 @@ export function RosterClient({ initialPlayers }: RosterClientProps) {
     <div className="flex-1 flex flex-col">
       <header className="bg-blue-700 text-white px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/" className="hover:text-blue-200 transition-colors">
+          <Link href={teamId ? `/teams/${teamId}` : '/'} className="hover:text-blue-200 transition-colors">
             &larr;
           </Link>
-          <h1 className="text-xl font-bold tracking-tight">Roster</h1>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight">Roster</h1>
+            {teamName && <p className="text-blue-200 text-xs">{teamName}</p>}
+          </div>
         </div>
         <span className="text-blue-200 text-sm">
           {initialPlayers.length} player{initialPlayers.length !== 1 ? 's' : ''}

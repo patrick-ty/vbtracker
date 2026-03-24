@@ -89,14 +89,6 @@ export function UserMenu({ email, activeTeamId, teams }: UserMenuProps) {
           )}
 
           <Link
-            href="/roster"
-            onClick={() => setOpen(false)}
-            className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Roster
-          </Link>
-
-          <Link
             href="/settings"
             onClick={() => setOpen(false)}
             className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
