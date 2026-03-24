@@ -29,24 +29,24 @@ export function PointButtons() {
           <button
             onClick={() => flipRallyPoint(editingRallyIndex, false)}
             disabled={isSaving || !rally.pointWon}
-            className={`py-3 rounded-xl font-bold text-lg transition-colors min-h-[52px] border-2 ${
+            className={`py-3 rounded-xl transition-colors min-h-[52px] ${
               !rally.pointWon
-                ? 'bg-red-600 border-red-600 text-white shadow-md'
-                : 'bg-white border-red-200 text-red-600 hover:bg-red-50'
+                ? 'bg-red-600 text-white font-bold text-lg shadow-md border-2 border-red-600'
+                : 'bg-gray-50 text-gray-400 font-medium text-sm border border-dashed border-gray-300 hover:border-red-300 hover:text-red-400'
             }`}
           >
-            Point<br />Lost
+            {!rally.pointWon ? <>Point<br />Lost</> : 'Switch to Lost'}
           </button>
           <button
             onClick={() => flipRallyPoint(editingRallyIndex, true)}
             disabled={isSaving || rally.pointWon}
-            className={`py-3 rounded-xl font-bold text-lg transition-colors min-h-[52px] border-2 ${
+            className={`py-3 rounded-xl transition-colors min-h-[52px] ${
               rally.pointWon
-                ? 'bg-green-600 border-green-600 text-white shadow-md'
-                : 'bg-white border-green-200 text-green-600 hover:bg-green-50'
+                ? 'bg-green-600 text-white font-bold text-lg shadow-md border-2 border-green-600'
+                : 'bg-gray-50 text-gray-400 font-medium text-sm border border-dashed border-gray-300 hover:border-green-300 hover:text-green-400'
             }`}
           >
-            Point<br />Won
+            {rally.pointWon ? <>Point<br />Won</> : 'Switch to Won'}
           </button>
         </div>
       </div>
