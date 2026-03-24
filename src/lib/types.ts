@@ -46,15 +46,15 @@ export function getScoreOptions(type: TouchType | null): ScoreOption[] {
   switch (type) {
     case 'serve':
       return [
-        { value: 3, label: 'Ace' },
-        { value: 2, label: 'In' },
         { value: 0, label: 'Error' },
+        { value: 2, label: 'In' },
+        { value: 3, label: 'Ace' },
       ];
     case 'block':
     case 'dig':
       return [
-        { value: 3, label: 'Success' },
         { value: 0, label: 'Fail' },
+        { value: 3, label: 'Success' },
       ];
     default: // pass, set, attack
       return [
