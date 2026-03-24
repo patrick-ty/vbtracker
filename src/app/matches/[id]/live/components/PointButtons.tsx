@@ -5,15 +5,55 @@ import { useMatchStore } from '@/stores/matchStore';
 export function PointButtons() {
   const logPoint = useMatchStore((s) => s.logPoint);
   const ballOver = useMatchStore((s) => s.ballOver);
+  const flipRallyPoint = useMatchStore((s) => s.flipRallyPoint);
   const isSaving = useMatchStore((s) => s.isSaving);
   const completedTouches = useMatchStore((s) => s.completedTouches);
   const editingRallyIndex = useMatchStore((s) => s.editingRallyIndex);
-
-  // Hide when editing an old rally
-  if (editingRallyIndex !== null) return null;
+  const rallyLog = useMatchStore((s) => s.rallyLog);
 
   const hasTouches = completedTouches.length > 0;
 
+  // Editing mode — show flip point buttons
+  if (editingRallyIndex !== null) {
+    const rally = rallyLog[editingRallyIndex];
+    if (!rally) return null;
+
+    return (
+      <div>
+        <p className="text-xs text-gray-500 mb-2 font-medium">
+          Currently: <span className={rally.pointWon ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
+            {rally.pointWon ? 'Our Point' : 'Their Point'}
+          </span> — tap to change:
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => flipRallyPoint(editingRallyIndex, false)}
+            disabled={isSaving || !rally.pointWon}
+            className={`py-3 rounded-xl font-bold text-base transition-colors min-h-[52px] ${
+              !rally.pointWon
+                ? 'bg-red-200 border-2 border-red-400 text-red-800'
+                : 'bg-red-50 border-2 border-red-300 text-red-700 hover:bg-red-100'
+            } disabled:opacity-50`}
+          >
+            Their Point
+          </button>
+          <button
+            onClick={() => flipRallyPoint(editingRallyIndex, true)}
+            disabled={isSaving || rally.pointWon}
+            className={`py-3 rounded-xl font-bold text-base transition-colors min-h-[52px] ${
+              rally.pointWon
+                ? 'bg-green-200 border-2 border-green-400 text-green-800'
+                : 'bg-green-50 border-2 border-green-300 text-green-700 hover:bg-green-100'
+            } disabled:opacity-50`}
+          >
+            Our Point
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Normal mode
   return (
     <div className="grid grid-cols-3 gap-2">
       <button

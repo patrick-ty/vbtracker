@@ -91,6 +91,7 @@ interface MatchState {
   cancelEditRally: () => void;
   saveEditRally: () => Promise<void>;
   deleteRally: (rallyIndex: number) => Promise<void>;
+  flipRallyPoint: (rallyIndex: number, pointWon: boolean) => Promise<void>;
 
   // Editing state
   editingRallyIndex: number | null; // index into rallyLog, null = editing current rally
@@ -469,6 +470,57 @@ export const useMatchStore = create<MatchState>((set, get) => ({
 
     // Rebuild rally log with corrected running scores
     const newLog = rallyLog.filter((_, i) => i !== rallyIndex);
+    let runOurs = 0;
+    let runTheirs = 0;
+    for (const r of newLog) {
+      if (r.pointWon) runOurs++;
+      else runTheirs++;
+      r.ourScore = runOurs;
+      r.theirScore = runTheirs;
+    }
+
+    set({
+      rallyLog: newLog,
+      currentSet: { ...currentSet, ourScore: newOurScore, theirScore: newTheirScore },
+      editingRallyIndex: null,
+      isSaving: false,
+    });
+  },
+
+  flipRallyPoint: async (rallyIndex, pointWon) => {
+    const { rallyLog, currentSet, isSaving } = get();
+    if (!currentSet || isSaving) return;
+    const rally = rallyLog[rallyIndex];
+    if (!rally || rally.pointWon === pointWon) return; // No change needed
+
+    set({ isSaving: true });
+    const supabase = createClient();
+
+    // Update rally in DB
+    const { data: dbRallies } = await supabase
+      .from('rallies')
+      .select('id')
+      .eq('set_id', currentSet.id)
+      .eq('rally_number', rally.rallyNumber);
+
+    if (dbRallies && dbRallies.length > 0) {
+      await supabase.from('rallies').update({ point_won: pointWon }).eq('id', dbRallies[0].id);
+    }
+
+    // Adjust score: flip = -1 from old winner, +1 to new winner
+    const newOurScore = currentSet.ourScore + (pointWon ? 1 : -1);
+    const newTheirScore = currentSet.theirScore + (pointWon ? -1 : 1);
+
+    await supabase.from('sets').update({
+      our_score: newOurScore,
+      their_score: newTheirScore,
+    }).eq('id', currentSet.id);
+
+    // Update rally log
+    const newLog = [...rallyLog];
+    newLog[rallyIndex] = { ...rally, pointWon };
+
+    // Recalculate running scores
     let runOurs = 0;
     let runTheirs = 0;
     for (const r of newLog) {
