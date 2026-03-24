@@ -22,7 +22,7 @@ export function PointButtons() {
       <div>
         <p className="text-xs text-gray-500 mb-2 font-medium">
           Currently: <span className={rally.pointWon ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
-            {rally.pointWon ? 'Our Point' : 'Their Point'}
+            {rally.pointWon ? 'Won Point' : 'Lost Point'}
           </span> — tap to change:
         </p>
         <div className="grid grid-cols-2 gap-2">
@@ -35,7 +35,7 @@ export function PointButtons() {
                 : 'bg-red-50 border-2 border-red-300 text-red-700 hover:bg-red-100'
             } disabled:opacity-50`}
           >
-            Their Point
+            Lost Point
           </button>
           <button
             onClick={() => flipRallyPoint(editingRallyIndex, true)}
@@ -46,7 +46,7 @@ export function PointButtons() {
                 : 'bg-green-50 border-2 border-green-300 text-green-700 hover:bg-green-100'
             } disabled:opacity-50`}
           >
-            Our Point
+            Won Point
           </button>
         </div>
       </div>
@@ -61,7 +61,7 @@ export function PointButtons() {
         disabled={isSaving}
         className="py-4 rounded-xl bg-red-50 border-2 border-red-300 text-red-700 font-bold text-base hover:bg-red-100 active:bg-red-200 transition-colors min-h-[56px] disabled:opacity-50"
       >
-        Their Point
+        Lost Point
       </button>
       <button
         onClick={() => ballOver()}
@@ -75,7 +75,7 @@ export function PointButtons() {
         disabled={isSaving}
         className="py-4 rounded-xl bg-green-50 border-2 border-green-300 text-green-700 font-bold text-base hover:bg-green-100 active:bg-green-200 transition-colors min-h-[56px] disabled:opacity-50"
       >
-        Our Point
+        Won Point
       </button>
     </div>
   );
