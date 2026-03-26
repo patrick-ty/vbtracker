@@ -187,6 +187,14 @@ export default async function LiveEntryPage({ params }: { params: Promise<{ id: 
     activeLineup = activeLineup.map((j) => j === sub.player_out ? sub.player_in : j);
   }
 
+  // Build set summaries for the header bar
+  const allSetSummaries = sets.map((s) => ({
+    setNumber: s.set_number,
+    ourScore: s.our_score,
+    theirScore: s.their_score,
+    status: s.status as 'in-progress' | 'completed',
+  }));
+
   return (
     <LiveEntryClient
       match={m}
@@ -199,6 +207,7 @@ export default async function LiveEntryPage({ params }: { params: Promise<{ id: 
         ourScore: currentSet!.our_score,
         theirScore: currentSet!.their_score,
       }}
+      allSets={allSetSummaries}
       nextRallyNumber={rallyCount + 1}
       isServingFirst={m.is_serving_first}
       players={players}

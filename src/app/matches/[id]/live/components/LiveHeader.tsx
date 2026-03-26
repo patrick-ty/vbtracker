@@ -21,13 +21,21 @@ function UndoButton() {
 
 type Match = Database['public']['Tables']['matches']['Row'];
 
+interface SetSummary {
+  setNumber: number;
+  ourScore: number;
+  theirScore: number;
+  status: 'in-progress' | 'completed';
+}
+
 interface LiveHeaderProps {
   match: Match;
   teamName: string;
   eventName: string | null;
+  allSets: SetSummary[];
 }
 
-export function LiveHeader({ match, teamName, eventName }: LiveHeaderProps) {
+export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderProps) {
   const currentSet = useMatchStore((s) => s.currentSet);
   const currentRallyNumber = useMatchStore((s) => s.currentRallyNumber);
 
@@ -59,17 +67,31 @@ export function LiveHeader({ match, teamName, eventName }: LiveHeaderProps) {
         </div>
       </div>
 
-      {/* Info bar: event/date on left, match/set on right */}
+      {/* Info bar: event/date on left, set scores on right */}
       <div className="bg-blue-800/50 px-6 py-1.5 flex items-center justify-between">
-        <span className="text-sm text-blue-300">
+        <span className="text-xs text-blue-300">
           {eventName && <span>{eventName} &middot; </span>}
           {new Date(match.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
         </span>
-        <span className="text-sm text-blue-300">
-          Match <span className="text-white font-bold">{match.opponent_name ? `vs ${match.opponent_name}` : ''}</span>
-          <span className="text-blue-600 mx-2">|</span>
-          Set <span className="text-white font-bold">{setNumber}</span>
-        </span>
+        <div className="flex items-center gap-2">
+          {allSets.map((s) => {
+            const isActive = s.setNumber === setNumber;
+            const displayOur = isActive ? ourScore : s.ourScore;
+            const displayTheir = isActive ? theirScore : s.theirScore;
+            return (
+              <span
+                key={s.setNumber}
+                className={`text-xs tabular-nums px-2 py-0.5 rounded ${
+                  isActive
+                    ? 'bg-blue-600 text-white font-bold'
+                    : 'text-blue-300'
+                }`}
+              >
+                S{s.setNumber}: {displayOur}-{displayTheir}
+              </span>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -19,11 +19,19 @@ interface SetInit {
   theirScore: number;
 }
 
+export interface SetSummary {
+  setNumber: number;
+  ourScore: number;
+  theirScore: number;
+  status: 'in-progress' | 'completed';
+}
+
 interface LiveEntryClientProps {
   match: Match;
   teamName: string;
   eventName: string | null;
   currentSet: SetInit;
+  allSets: SetSummary[];
   nextRallyNumber: number;
   isServingFirst: boolean;
   players: Player[];
@@ -37,6 +45,7 @@ export function LiveEntryClient({
   teamName,
   eventName,
   currentSet,
+  allSets,
   nextRallyNumber,
   isServingFirst,
   players,
@@ -53,7 +62,7 @@ export function LiveEntryClient({
   return (
     <div className="flex flex-col bg-gray-100 select-none overflow-hidden" style={{ height: '100dvh' }}>
       {/* Header: scoreboard + context */}
-      <LiveHeader match={match} teamName={teamName} eventName={eventName} />
+      <LiveHeader match={match} teamName={teamName} eventName={eventName} allSets={allSets} />
 
       {/* Two-column body */}
       <div className="flex-1 flex min-h-0">
