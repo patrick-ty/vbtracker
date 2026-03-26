@@ -44,65 +44,69 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
   const opponent = match.opponent_name || 'Opponent';
 
   return (
-    <div className="bg-blue-700 text-white shrink-0">
-      {/* Thin top bar */}
-      <div className="flex items-center justify-between px-6 py-1">
-        <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white text-sm font-medium">
-          &larr; Exit
-        </Link>
-        <UndoButton />
-      </div>
-
-      {/* Main header row */}
-      <div className="flex items-center px-6 pb-3">
-        {/* Left: Event info — vertically centered */}
-        <div className="w-56 shrink-0 flex flex-col justify-center">
-          {eventName && (
-            <p className="text-xl font-bold text-white leading-tight">{eventName}</p>
-          )}
-          <p className="text-sm text-blue-300 mt-1">
-            {new Date(match.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-          </p>
+    <div className="bg-blue-700 text-white shrink-0 py-3">
+      <div className="flex items-center">
+        {/* Col 1: Exit */}
+        <div className="w-16 shrink-0 text-center">
+          <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white text-sm font-medium">
+            &larr;
+          </Link>
         </div>
 
-        {/* Center: Scoreboard — same proportions as original */}
-        <div className="flex-1">
-          <div className="flex items-end justify-center gap-8">
-            <div className="text-center w-36">
-              <p className="text-sm font-semibold text-blue-200 uppercase tracking-wide">{teamName}</p>
-              <p className="text-5xl font-black tabular-nums leading-none mt-1">{ourScore}</p>
-            </div>
-            <div className="text-blue-400 text-2xl font-light pb-3">–</div>
-            <div className="text-center w-36">
-              <p className="text-sm font-semibold text-blue-200 uppercase tracking-wide">{opponent}</p>
-              <p className="text-5xl font-black tabular-nums leading-none mt-1">{theirScore}</p>
-            </div>
+        {/* Col 2: Middle — split into event info + scoreboard */}
+        <div className="flex-1 flex items-center">
+          {/* Left half: Event + Date */}
+          <div className="w-1/3 pr-6 flex flex-col justify-center">
+            {eventName && (
+              <p className="text-xl font-bold text-white leading-tight">{eventName}</p>
+            )}
+            <p className="text-sm text-blue-300 mt-1">
+              {new Date(match.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+            </p>
           </div>
 
-          {/* Set scores */}
-          <div className="flex items-center justify-center gap-3 mt-2">
-            {allSets.map((s) => {
-              const isActive = s.setNumber === setNumber;
-              const displayOur = isActive ? ourScore : s.ourScore;
-              const displayTheir = isActive ? theirScore : s.theirScore;
-              return (
-                <span
-                  key={s.setNumber}
-                  className={`text-sm tabular-nums px-3 py-0.5 rounded-full ${
-                    isActive
-                      ? 'bg-white/20 text-white font-bold'
-                      : 'text-blue-300 font-medium'
-                  }`}
-                >
-                  S{s.setNumber} {displayOur}–{displayTheir}
-                </span>
-              );
-            })}
+          {/* Right half: Scoreboard + sets */}
+          <div className="w-2/3">
+            {/* Score */}
+            <div className="flex items-end justify-center gap-8">
+              <div className="text-center w-36">
+                <p className="text-sm font-semibold text-blue-200 uppercase tracking-wide">{teamName}</p>
+                <p className="text-5xl font-black tabular-nums leading-none mt-1">{ourScore}</p>
+              </div>
+              <div className="text-blue-400 text-2xl font-light pb-3">–</div>
+              <div className="text-center w-36">
+                <p className="text-sm font-semibold text-blue-200 uppercase tracking-wide">{opponent}</p>
+                <p className="text-5xl font-black tabular-nums leading-none mt-1">{theirScore}</p>
+              </div>
+            </div>
+
+            {/* Set scores below scoreboard */}
+            <div className="flex items-center justify-center gap-3 mt-2">
+              {allSets.map((s) => {
+                const isActive = s.setNumber === setNumber;
+                const displayOur = isActive ? ourScore : s.ourScore;
+                const displayTheir = isActive ? theirScore : s.theirScore;
+                return (
+                  <span
+                    key={s.setNumber}
+                    className={`text-sm tabular-nums px-3 py-0.5 rounded-full ${
+                      isActive
+                        ? 'bg-white/20 text-white font-bold'
+                        : 'text-blue-300 font-medium'
+                    }`}
+                  >
+                    {isActive ? `Set ${s.setNumber}` : `S${s.setNumber} ${displayOur}–${displayTheir}`}
+                  </span>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Right spacer */}
-        <div className="w-56 shrink-0" />
+        {/* Col 3: Undo */}
+        <div className="w-16 shrink-0 text-center">
+          <UndoButton />
+        </div>
       </div>
     </div>
   );
