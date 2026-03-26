@@ -18,6 +18,7 @@ export function PlayerGrid({ players, positions }: PlayerGridProps) {
   const subState = useMatchStore((s) => s.subState);
   const activeLineup = useMatchStore((s) => s.activeLineup);
   const selectPlayer = useMatchStore((s) => s.selectPlayer);
+  const startSub = useMatchStore((s) => s.startSub);
   const selectSubIn = useMatchStore((s) => s.selectSubIn);
   const selectSubOut = useMatchStore((s) => s.selectSubOut);
 
@@ -81,6 +82,16 @@ export function PlayerGrid({ players, positions }: PlayerGridProps) {
   // Normal mode: player selection
   return (
     <div>
+      {lineup.length > 0 && !subState && (
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={() => startSub()}
+            className="px-3 py-1.5 rounded-lg border-2 border-orange-300 text-orange-600 text-xs font-bold hover:bg-orange-50 transition-colors"
+          >
+            SUB
+          </button>
+        </div>
+      )}
       {positions && Object.keys(positions).length === 6 && (
         <p className="text-[10px] text-gray-400 text-center mb-1 font-medium uppercase tracking-wider">— net —</p>
       )}

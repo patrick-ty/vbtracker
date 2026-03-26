@@ -51,31 +51,33 @@ export function PointButtons() {
 
   // Normal mode
   return (
-    <div>
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider text-center mb-2">Point</p>
-      <div className="flex gap-3 items-stretch">
-        <button
-          onClick={() => logPoint(false)}
-          disabled={isSaving}
-          className="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold text-lg hover:bg-red-700 active:bg-red-800 transition-colors min-h-[52px] disabled:opacity-50"
-        >
-          LOST
-        </button>
-        <button
-          onClick={() => ballOver()}
-          disabled={isSaving || !hasTouches}
-          className="px-5 rounded-xl bg-white border-2 border-gray-300 text-gray-600 font-bold text-sm hover:bg-gray-100 active:bg-gray-200 transition-colors disabled:opacity-30"
-        >
-          Ball<br />Over
-        </button>
-        <button
-          onClick={() => logPoint(true)}
-          disabled={isSaving}
-          className="flex-1 py-4 rounded-xl bg-green-600 text-white font-bold text-lg hover:bg-green-700 active:bg-green-800 transition-colors min-h-[52px] disabled:opacity-50"
-        >
-          WON
-        </button>
+    <div className="space-y-3">
+      <div>
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider text-center mb-2">Point</p>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => logPoint(false)}
+            disabled={isSaving}
+            className="py-4 rounded-xl bg-red-600 text-white font-bold text-lg hover:bg-red-700 active:bg-red-800 transition-colors min-h-[52px] disabled:opacity-50"
+          >
+            LOST
+          </button>
+          <button
+            onClick={() => logPoint(true)}
+            disabled={isSaving}
+            className="py-4 rounded-xl bg-green-600 text-white font-bold text-lg hover:bg-green-700 active:bg-green-800 transition-colors min-h-[52px] disabled:opacity-50"
+          >
+            WON
+          </button>
+        </div>
       </div>
+      <button
+        onClick={() => ballOver()}
+        disabled={isSaving || !hasTouches}
+        className="w-full py-3 rounded-xl bg-white border-2 border-gray-300 text-gray-700 font-bold text-base hover:bg-gray-100 active:bg-gray-200 transition-colors min-h-[48px] disabled:opacity-30"
+      >
+        Ball Over
+      </button>
     </div>
   );
 }
