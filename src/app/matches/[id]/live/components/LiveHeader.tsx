@@ -44,47 +44,40 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
   const opponent = match.opponent_name || 'Opponent';
 
   return (
-    <div className="bg-blue-700 text-white shrink-0">
-      {/* Top bar: Exit + Undo */}
-      <div className="flex items-center justify-between px-6 pt-1.5 pb-1">
-        <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white text-sm font-medium">
-          &larr; Exit
-        </Link>
-        <UndoButton />
-      </div>
-
-      {/* Main header: context (33%) + scoreboard (66%) */}
-      <div className="flex items-stretch px-6 pb-2">
-        {/* Left 33%: Event, date, match info */}
-        <div className="w-1/3 flex flex-col justify-center pr-4 border-r border-blue-600/50">
-          {eventName && (
-            <p className="text-base font-semibold text-white leading-tight">{eventName}</p>
-          )}
-          <p className="text-xs text-blue-300 mt-0.5">
-            {new Date(match.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
-          </p>
-          <p className="text-xs text-blue-300 mt-0.5">
-            vs {opponent}
-          </p>
+    <div className="bg-blue-700 text-white shrink-0 px-8 py-3">
+      {/* Row 1: Exit, context, scoreboard, undo */}
+      <div className="flex items-start justify-between gap-6">
+        {/* Left: Exit + event info */}
+        <div className="w-48 shrink-0">
+          <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white text-sm font-medium">
+            &larr; Exit
+          </Link>
+          <div className="mt-2">
+            {eventName && (
+              <p className="text-sm font-semibold text-white leading-snug">{eventName}</p>
+            )}
+            <p className="text-xs text-blue-300 mt-1">
+              {new Date(match.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+            </p>
+          </div>
         </div>
 
-        {/* Right 66%: Scoreboard */}
-        <div className="w-2/3 pl-6">
-          {/* Team scores */}
-          <div className="flex items-end justify-center gap-8">
-            <div className="text-center">
-              <p className="text-xs font-semibold text-blue-200 uppercase tracking-wide">{teamName}</p>
-              <p className="text-5xl font-black tabular-nums leading-none mt-1">{ourScore}</p>
+        {/* Center: Scoreboard */}
+        <div className="flex-1 text-center">
+          <div className="flex items-center justify-center gap-12">
+            <div className="text-right min-w-[120px]">
+              <p className="text-sm font-bold text-blue-200 uppercase tracking-wide">{teamName}</p>
+              <p className="text-6xl font-black tabular-nums leading-none mt-1">{ourScore}</p>
             </div>
-            <div className="text-blue-400 text-xl font-light pb-2">–</div>
-            <div className="text-center">
-              <p className="text-xs font-semibold text-blue-200 uppercase tracking-wide">{opponent}</p>
-              <p className="text-5xl font-black tabular-nums leading-none mt-1">{theirScore}</p>
+            <div className="text-blue-400 text-3xl font-light">–</div>
+            <div className="text-left min-w-[120px]">
+              <p className="text-sm font-bold text-blue-200 uppercase tracking-wide">{opponent}</p>
+              <p className="text-6xl font-black tabular-nums leading-none mt-1">{theirScore}</p>
             </div>
           </div>
 
-          {/* Set scores row */}
-          <div className="flex items-center justify-center gap-2 mt-1.5">
+          {/* Set scores */}
+          <div className="flex items-center justify-center gap-3 mt-2">
             {allSets.map((s) => {
               const isActive = s.setNumber === setNumber;
               const displayOur = isActive ? ourScore : s.ourScore;
@@ -92,17 +85,22 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
               return (
                 <span
                   key={s.setNumber}
-                  className={`text-xs tabular-nums px-2.5 py-0.5 rounded-full ${
+                  className={`text-sm tabular-nums px-3 py-1 rounded-full ${
                     isActive
                       ? 'bg-white/20 text-white font-bold'
-                      : 'text-blue-300'
+                      : 'text-blue-300 font-medium'
                   }`}
                 >
-                  S{s.setNumber} {displayOur}-{displayTheir}
+                  S{s.setNumber} {displayOur}–{displayTheir}
                 </span>
               );
             })}
           </div>
+        </div>
+
+        {/* Right: Undo */}
+        <div className="w-48 shrink-0 text-right">
+          <UndoButton />
         </div>
       </div>
     </div>
