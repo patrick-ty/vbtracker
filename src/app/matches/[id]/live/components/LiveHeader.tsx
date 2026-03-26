@@ -37,7 +37,6 @@ interface LiveHeaderProps {
 
 export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderProps) {
   const currentSet = useMatchStore((s) => s.currentSet);
-  const currentRallyNumber = useMatchStore((s) => s.currentRallyNumber);
 
   const ourScore = currentSet?.ourScore ?? 0;
   const theirScore = currentSet?.theirScore ?? 0;
@@ -47,50 +46,63 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
   return (
     <div className="bg-blue-700 text-white shrink-0">
       {/* Top bar: Exit + Undo */}
-      <div className="flex items-center justify-between px-6 pt-2">
-        <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white font-medium">
+      <div className="flex items-center justify-between px-6 pt-1.5 pb-1">
+        <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white text-sm font-medium">
           &larr; Exit
         </Link>
         <UndoButton />
       </div>
 
-      {/* Score */}
-      <div className="flex items-end justify-center gap-10 py-2">
-        <div className="text-center w-36">
-          <p className="text-sm font-semibold text-blue-200 uppercase tracking-wide">{teamName}</p>
-          <p className="text-5xl font-black tabular-nums leading-none mt-1">{ourScore}</p>
+      {/* Main header: context (33%) + scoreboard (66%) */}
+      <div className="flex items-stretch px-6 pb-2">
+        {/* Left 33%: Event, date, match info */}
+        <div className="w-1/3 flex flex-col justify-center pr-4 border-r border-blue-600/50">
+          {eventName && (
+            <p className="text-base font-semibold text-white leading-tight">{eventName}</p>
+          )}
+          <p className="text-xs text-blue-300 mt-0.5">
+            {new Date(match.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
+          </p>
+          <p className="text-xs text-blue-300 mt-0.5">
+            vs {opponent}
+          </p>
         </div>
-        <div className="text-blue-400 text-2xl font-light pb-3">–</div>
-        <div className="text-center w-36">
-          <p className="text-sm font-semibold text-blue-200 uppercase tracking-wide">{opponent}</p>
-          <p className="text-5xl font-black tabular-nums leading-none mt-1">{theirScore}</p>
-        </div>
-      </div>
 
-      {/* Info bar: event/date on left, set scores on right */}
-      <div className="bg-blue-800/50 px-6 py-1.5 flex items-center justify-between">
-        <span className="text-xs text-blue-300">
-          {eventName && <span>{eventName} &middot; </span>}
-          {new Date(match.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-        </span>
-        <div className="flex items-center gap-2">
-          {allSets.map((s) => {
-            const isActive = s.setNumber === setNumber;
-            const displayOur = isActive ? ourScore : s.ourScore;
-            const displayTheir = isActive ? theirScore : s.theirScore;
-            return (
-              <span
-                key={s.setNumber}
-                className={`text-xs tabular-nums px-2 py-0.5 rounded ${
-                  isActive
-                    ? 'bg-blue-600 text-white font-bold'
-                    : 'text-blue-300'
-                }`}
-              >
-                S{s.setNumber}: {displayOur}-{displayTheir}
-              </span>
-            );
-          })}
+        {/* Right 66%: Scoreboard */}
+        <div className="w-2/3 pl-6">
+          {/* Team scores */}
+          <div className="flex items-end justify-center gap-8">
+            <div className="text-center">
+              <p className="text-xs font-semibold text-blue-200 uppercase tracking-wide">{teamName}</p>
+              <p className="text-5xl font-black tabular-nums leading-none mt-1">{ourScore}</p>
+            </div>
+            <div className="text-blue-400 text-xl font-light pb-2">–</div>
+            <div className="text-center">
+              <p className="text-xs font-semibold text-blue-200 uppercase tracking-wide">{opponent}</p>
+              <p className="text-5xl font-black tabular-nums leading-none mt-1">{theirScore}</p>
+            </div>
+          </div>
+
+          {/* Set scores row */}
+          <div className="flex items-center justify-center gap-2 mt-1.5">
+            {allSets.map((s) => {
+              const isActive = s.setNumber === setNumber;
+              const displayOur = isActive ? ourScore : s.ourScore;
+              const displayTheir = isActive ? theirScore : s.theirScore;
+              return (
+                <span
+                  key={s.setNumber}
+                  className={`text-xs tabular-nums px-2.5 py-0.5 rounded-full ${
+                    isActive
+                      ? 'bg-white/20 text-white font-bold'
+                      : 'text-blue-300'
+                  }`}
+                >
+                  S{s.setNumber} {displayOur}-{displayTheir}
+                </span>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
