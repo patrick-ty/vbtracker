@@ -32,14 +32,14 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
     <div className="bg-blue-700 text-white shrink-0 py-3">
       <div className="flex items-stretch px-6 gap-0">
         {/* Col 1: Exit */}
-        <div className="flex items-center pr-6 shrink-0">
+        <div className="flex items-center pr-8 shrink-0">
           <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white text-sm font-medium whitespace-nowrap">
             &larr; Exit
           </Link>
         </div>
 
         {/* Col 2: Event info */}
-        <div className="flex flex-col justify-center pr-8 shrink-0 border-l border-blue-500/30 pl-6">
+        <div className="flex flex-col justify-center pr-10 shrink-0 border-l border-blue-500/30 pl-8">
           {eventName && (
             <p className="text-xl font-bold text-white leading-tight">{eventName}</p>
           )}
