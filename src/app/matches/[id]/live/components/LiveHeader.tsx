@@ -38,15 +38,11 @@ export function LiveHeader({ match, teamName, eventName }: LiveHeaderProps) {
 
   return (
     <div className="bg-blue-700 text-white shrink-0">
-      {/* Context bar */}
+      {/* Top bar: Exit + Undo */}
       <div className="flex items-center justify-between px-6 pt-2">
         <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white font-medium">
           &larr; Exit
         </Link>
-        <p className="text-xs text-blue-300">
-          {eventName && <span>{eventName} &middot; </span>}
-          {new Date(match.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-        </p>
         <UndoButton />
       </div>
 
@@ -63,11 +59,17 @@ export function LiveHeader({ match, teamName, eventName }: LiveHeaderProps) {
         </div>
       </div>
 
-      {/* Set / Rally bar */}
-      <div className="bg-blue-800/50 px-6 py-1.5 flex items-center justify-center gap-6">
-        <span className="text-sm text-blue-300">Set <span className="text-white font-bold">{setNumber}</span></span>
-        <span className="text-blue-600">|</span>
-        <span className="text-sm text-blue-300">Rally <span className="text-white font-bold">{currentRallyNumber}</span></span>
+      {/* Info bar: event/date on left, match/set on right */}
+      <div className="bg-blue-800/50 px-6 py-1.5 flex items-center justify-between">
+        <span className="text-sm text-blue-300">
+          {eventName && <span>{eventName} &middot; </span>}
+          {new Date(match.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+        </span>
+        <span className="text-sm text-blue-300">
+          Match <span className="text-white font-bold">{match.opponent_name ? `vs ${match.opponent_name}` : ''}</span>
+          <span className="text-blue-600 mx-2">|</span>
+          Set <span className="text-white font-bold">{setNumber}</span>
+        </span>
       </div>
     </div>
   );
