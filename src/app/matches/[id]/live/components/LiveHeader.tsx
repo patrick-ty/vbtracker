@@ -4,21 +4,6 @@ import Link from 'next/link';
 import { useMatchStore } from '@/stores/matchStore';
 import type { Database } from '@/lib/database.types';
 
-function UndoButton() {
-  const undoLastRally = useMatchStore((s) => s.undoLastRally);
-  const currentRallyNumber = useMatchStore((s) => s.currentRallyNumber);
-
-  return (
-    <button
-      onClick={() => undoLastRally()}
-      disabled={currentRallyNumber <= 1}
-      className="text-blue-200 hover:text-white font-medium disabled:opacity-30 transition-colors"
-    >
-      Undo
-    </button>
-  );
-}
-
 type Match = Database['public']['Tables']['matches']['Row'];
 
 interface SetSummary {
@@ -103,10 +88,8 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
           </div>
         </div>
 
-        {/* Col 3: Undo */}
-        <div className="w-16 shrink-0 text-center">
-          <UndoButton />
-        </div>
+        {/* Col 3: spacer to balance */}
+        <div className="w-16 shrink-0" />
       </div>
     </div>
   );

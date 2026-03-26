@@ -10,6 +10,8 @@ export function RallyLog() {
   const serve = useMatchStore((s) => s.serve);
   const completedTouches = useMatchStore((s) => s.completedTouches);
   const editingRallyIndex = useMatchStore((s) => s.editingRallyIndex);
+  const undoLastRally = useMatchStore((s) => s.undoLastRally);
+  const currentRallyNumber = useMatchStore((s) => s.currentRallyNumber);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,6 +35,17 @@ export function RallyLog() {
 
       {/* Only show current rally card when NOT editing an old rally */}
       {!isEditingOldRally && <CurrentRallyCard />}
+
+      {/* Undo button */}
+      {rallyLog.length > 0 && !isEditingOldRally && (
+        <button
+          onClick={() => undoLastRally()}
+          disabled={currentRallyNumber <= 1}
+          className="text-sm font-medium text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg py-2 transition-colors disabled:opacity-30"
+        >
+          Undo last rally
+        </button>
+      )}
 
       <div ref={endRef} />
     </div>
