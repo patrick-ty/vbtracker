@@ -44,22 +44,25 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
   const opponent = match.opponent_name || 'Opponent';
 
   return (
-    <div className="bg-blue-700 text-white shrink-0 px-8 py-3">
-      {/* Row 1: Exit, context, scoreboard, undo */}
-      <div className="flex items-start justify-between gap-6">
-        {/* Left: Exit + event info */}
-        <div className="w-48 shrink-0">
-          <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white text-sm font-medium">
-            &larr; Exit
-          </Link>
-          <div className="mt-2">
-            {eventName && (
-              <p className="text-sm font-semibold text-white leading-snug">{eventName}</p>
-            )}
-            <p className="text-xs text-blue-300 mt-1">
-              {new Date(match.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-            </p>
-          </div>
+    <div className="bg-blue-700 text-white shrink-0">
+      {/* Top thin bar: Exit + Undo */}
+      <div className="flex items-center justify-between px-6 py-1.5">
+        <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white text-sm font-medium">
+          &larr; Exit
+        </Link>
+        <UndoButton />
+      </div>
+
+      {/* Main content: event info left, scoreboard center+right */}
+      <div className="flex items-center px-8 pb-3">
+        {/* Left: Event info */}
+        <div className="w-52 shrink-0">
+          {eventName && (
+            <p className="text-base font-semibold text-white leading-snug">{eventName}</p>
+          )}
+          <p className="text-xs text-blue-300 mt-1">
+            {new Date(match.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+          </p>
         </div>
 
         {/* Center: Scoreboard */}
@@ -98,10 +101,8 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
           </div>
         </div>
 
-        {/* Right: Undo */}
-        <div className="w-48 shrink-0 text-right">
-          <UndoButton />
-        </div>
+        {/* Right spacer to balance the layout */}
+        <div className="w-52 shrink-0" />
       </div>
     </div>
   );
