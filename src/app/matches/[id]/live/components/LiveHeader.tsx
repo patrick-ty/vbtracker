@@ -45,37 +45,37 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
 
   return (
     <div className="bg-blue-700 text-white shrink-0">
-      {/* Top thin bar: Exit + Undo */}
-      <div className="flex items-center justify-between px-6 py-1.5">
+      {/* Thin top bar */}
+      <div className="flex items-center justify-between px-6 py-1">
         <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white text-sm font-medium">
           &larr; Exit
         </Link>
         <UndoButton />
       </div>
 
-      {/* Main content: event info left, scoreboard center+right */}
-      <div className="flex items-center px-8 pb-3">
-        {/* Left: Event info */}
-        <div className="w-52 shrink-0">
+      {/* Main header row */}
+      <div className="flex items-center px-6 pb-3">
+        {/* Left: Event info — vertically centered */}
+        <div className="w-56 shrink-0 flex flex-col justify-center">
           {eventName && (
-            <p className="text-base font-semibold text-white leading-snug">{eventName}</p>
+            <p className="text-xl font-bold text-white leading-tight">{eventName}</p>
           )}
-          <p className="text-xs text-blue-300 mt-1">
-            {new Date(match.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+          <p className="text-sm text-blue-300 mt-1">
+            {new Date(match.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
 
-        {/* Center: Scoreboard */}
-        <div className="flex-1 text-center">
-          <div className="flex items-center justify-center gap-12">
-            <div className="text-right min-w-[120px]">
-              <p className="text-sm font-bold text-blue-200 uppercase tracking-wide">{teamName}</p>
-              <p className="text-6xl font-black tabular-nums leading-none mt-1">{ourScore}</p>
+        {/* Center: Scoreboard — same proportions as original */}
+        <div className="flex-1">
+          <div className="flex items-end justify-center gap-8">
+            <div className="text-center w-36">
+              <p className="text-sm font-semibold text-blue-200 uppercase tracking-wide">{teamName}</p>
+              <p className="text-5xl font-black tabular-nums leading-none mt-1">{ourScore}</p>
             </div>
-            <div className="text-blue-400 text-3xl font-light">–</div>
-            <div className="text-left min-w-[120px]">
-              <p className="text-sm font-bold text-blue-200 uppercase tracking-wide">{opponent}</p>
-              <p className="text-6xl font-black tabular-nums leading-none mt-1">{theirScore}</p>
+            <div className="text-blue-400 text-2xl font-light pb-3">–</div>
+            <div className="text-center w-36">
+              <p className="text-sm font-semibold text-blue-200 uppercase tracking-wide">{opponent}</p>
+              <p className="text-5xl font-black tabular-nums leading-none mt-1">{theirScore}</p>
             </div>
           </div>
 
@@ -88,7 +88,7 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
               return (
                 <span
                   key={s.setNumber}
-                  className={`text-sm tabular-nums px-3 py-1 rounded-full ${
+                  className={`text-sm tabular-nums px-3 py-0.5 rounded-full ${
                     isActive
                       ? 'bg-white/20 text-white font-bold'
                       : 'text-blue-300 font-medium'
@@ -101,8 +101,8 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
           </div>
         </div>
 
-        {/* Right spacer to balance the layout */}
-        <div className="w-52 shrink-0" />
+        {/* Right spacer */}
+        <div className="w-56 shrink-0" />
       </div>
     </div>
   );
