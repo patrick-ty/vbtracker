@@ -30,16 +30,16 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
 
   return (
     <div className="bg-blue-700 text-white shrink-0 py-3">
-      <div className="flex items-stretch px-6 gap-0">
+      <div className="grid grid-cols-[60px_1fr_2fr] items-center">
         {/* Col 1: Exit */}
-        <div className="flex items-center pr-8 shrink-0">
-          <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white text-sm font-medium whitespace-nowrap">
-            &larr; Exit
+        <div className="flex items-center justify-center">
+          <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white text-sm font-medium">
+            &larr;
           </Link>
         </div>
 
         {/* Col 2: Event info */}
-        <div className="flex flex-col justify-center pr-10 shrink-0 border-l border-blue-500/30 pl-8">
+        <div className="flex flex-col justify-center px-6 border-l border-r border-blue-500/30">
           {eventName && (
             <p className="text-xl font-bold text-white leading-tight">{eventName}</p>
           )}
@@ -49,7 +49,7 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
         </div>
 
         {/* Col 3: Scoreboard */}
-        <div className="flex-1 border-l border-blue-500/30 pl-8">
+        <div className="px-6">
           <div className="flex items-end justify-center gap-10">
             <div className="text-center">
               <p className="text-sm font-semibold text-blue-200 uppercase tracking-wide">{teamName}</p>
