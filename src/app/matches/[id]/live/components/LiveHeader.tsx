@@ -33,7 +33,7 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
       <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
         {/* Col 1: Exit */}
         <div style={{ width: 60, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Link href={`/matches/${match.id}`} className="text-blue-300 hover:text-white text-sm font-medium">
+          <Link href={`/matches/${match.id}`} className="text-blue-200 hover:text-white text-2xl font-bold transition-colors">
             &larr;
           </Link>
         </div>
