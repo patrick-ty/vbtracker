@@ -209,7 +209,13 @@ export default async function LiveEntryPage({ params }: { params: Promise<{ id: 
       }}
       allSets={allSetSummaries}
       nextRallyNumber={rallyCount + 1}
-      isServingFirst={m.is_serving_first}
+      isServingFirst={
+        // If there are existing rallies, derive from last rally outcome
+        // Won last rally = we serve, lost = we receive
+        initialRallyLog.length > 0
+          ? initialRallyLog[initialRallyLog.length - 1].pointWon
+          : m.is_serving_first
+      }
       players={players}
       activeLineup={activeLineup}
       positions={positions}
