@@ -62,6 +62,9 @@ interface MatchState {
   completedTouches: Touch[];
   allSequences: { isServe: boolean; touches: Touch[] }[];
 
+  // Court positions: position number → jersey number
+  courtPositions: Record<string, number> | null;
+
   // Selection state (replaces entryStep + pending)
   selectedPlayer: number | null;
   selectedType: TouchType | null;
@@ -73,7 +76,7 @@ interface MatchState {
   lastServer: number | null;
 
   // Actions
-  initMatch: (matchId: string, set: SetState, isServing: boolean, rallyNumber: number, lineup: number[], existingLog?: CompletedRally[]) => void;
+  initMatch: (matchId: string, set: SetState, isServing: boolean, rallyNumber: number, lineup: number[], positions: Record<string, number> | null, existingLog?: CompletedRally[]) => void;
   toggleServing: () => void;
 
   // Selection
@@ -133,6 +136,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   currentSequenceNumber: 1,
   completedTouches: [],
   allSequences: [],
+  courtPositions: null,
   selectedPlayer: null,
   selectedType: null,
   editTarget: null,
@@ -141,11 +145,12 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   isSaving: false,
   lastServer: null,
 
-  initMatch: (matchId, currentSet, isServing, rallyNumber, lineup, existingLog) => {
+  initMatch: (matchId, currentSet, isServing, rallyNumber, lineup, positions, existingLog) => {
     set({
       matchId, currentSet, isServing,
       currentRallyNumber: rallyNumber,
       activeLineup: lineup,
+      courtPositions: positions,
       rallyLog: existingLog ?? [],
       serve: null, currentSequenceNumber: 1,
       completedTouches: [], allSequences: [],
@@ -578,17 +583,25 @@ export const useMatchStore = create<MatchState>((set, get) => ({
 
   // ─── Sequence Management ─────────────────────────────────────────
 
-  // Rotation: 1→6→5→4→3→2→1 (standard volleyball clockwise)
-  // Position mapping: player in pos 1 moves to pos 6, pos 6→5, pos 5→4, pos 4→3, pos 3→2, pos 2→1
+  // Standard volleyball clockwise rotation:
+  // pos 1→pos 6, pos 6→pos 5, pos 5→pos 4, pos 4→pos 3, pos 3→pos 2, pos 2→pos 1
   rotateLineup: () => {
-    const { activeLineup } = get();
-    if (activeLineup.length !== 6) return;
+    const { courtPositions } = get();
+    if (!courtPositions || Object.keys(courtPositions).length !== 6) return;
 
-    // activeLineup is ordered by court positions [pos4, pos3, pos2, pos5, pos6, pos1]
-    // After rotation: pos4←pos5, pos3←pos4, pos2←pos3, pos5←pos6, pos6←pos1, pos1←pos2
-    const [p4, p3, p2, p5, p6, p1] = activeLineup;
-    const rotated = [p5, p4, p3, p6, p1, p2];
-    set({ activeLineup: rotated });
+    const newPositions: Record<string, number> = {
+      '1': courtPositions['2'],
+      '2': courtPositions['3'],
+      '3': courtPositions['4'],
+      '4': courtPositions['5'],
+      '5': courtPositions['6'],
+      '6': courtPositions['1'],
+    };
+
+    // Also update activeLineup to match
+    const newLineup = Object.values(newPositions);
+
+    set({ courtPositions: newPositions, activeLineup: newLineup });
   },
 
   ballOver: () => {
@@ -764,6 +777,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       serve: null, currentSequenceNumber: 1,
       completedTouches: [], allSequences: [],
       selectedPlayer: null, selectedType: null,
+      courtPositions: null,
       editTarget: null, editingRallyIndex: null, subState: null,
       isSaving: false, lastServer: null,
     });

@@ -56,7 +56,7 @@ export function LiveEntryClient({
   const initMatch = useMatchStore((s) => s.initMatch);
 
   useEffect(() => {
-    initMatch(match.id, currentSet, isServingFirst, nextRallyNumber, activeLineup, initialRallyLog);
+    initMatch(match.id, currentSet, isServingFirst, nextRallyNumber, activeLineup, positions, initialRallyLog);
   }, []);
 
   return (

@@ -13,13 +13,17 @@ interface PlayerGridProps {
 // Court layout: positions 4,3,2 (front L,C,R) then 5,6,1 (back L,C,R)
 const COURT_ORDER = [4, 3, 2, 5, 6, 1];
 
-export function PlayerGrid({ players, positions }: PlayerGridProps) {
+export function PlayerGrid({ players, positions: initialPositions }: PlayerGridProps) {
   const selectedPlayer = useMatchStore((s) => s.selectedPlayer);
   const subState = useMatchStore((s) => s.subState);
   const activeLineup = useMatchStore((s) => s.activeLineup);
+  const courtPositions = useMatchStore((s) => s.courtPositions);
   const selectPlayer = useMatchStore((s) => s.selectPlayer);
   const startSub = useMatchStore((s) => s.startSub);
   const rotateLineup = useMatchStore((s) => s.rotateLineup);
+
+  // Use store positions (updated by rotate) or fall back to initial
+  const positions = courtPositions ?? initialPositions;
   const selectSubIn = useMatchStore((s) => s.selectSubIn);
   const selectSubOut = useMatchStore((s) => s.selectSubOut);
 
