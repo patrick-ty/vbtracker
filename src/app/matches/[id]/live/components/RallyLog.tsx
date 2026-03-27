@@ -41,7 +41,7 @@ export function RallyLog() {
         <button
           onClick={() => undoLastRally()}
           disabled={currentRallyNumber <= 1}
-          className="text-sm font-medium text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg py-2 transition-colors disabled:opacity-30"
+          className="text-sm font-medium text-gray-400 border-2 border-gray-200 hover:text-red-500 hover:border-red-300 hover:bg-red-50 rounded-lg py-2 px-4 transition-colors disabled:opacity-30"
         >
           Undo last rally
         </button>
