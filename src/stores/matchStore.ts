@@ -102,6 +102,9 @@ interface MatchState {
   selectSubOut: (jersey: number) => void;
   cancelSub: () => void;
 
+  // Lineup
+  rotateLineup: () => void;
+
   // Sequence
   ballOver: () => void;
 
@@ -574,6 +577,19 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   },
 
   // ─── Sequence Management ─────────────────────────────────────────
+
+  // Rotation: 1→6→5→4→3→2→1 (standard volleyball clockwise)
+  // Position mapping: player in pos 1 moves to pos 6, pos 6→5, pos 5→4, pos 4→3, pos 3→2, pos 2→1
+  rotateLineup: () => {
+    const { activeLineup } = get();
+    if (activeLineup.length !== 6) return;
+
+    // activeLineup is ordered by court positions [pos4, pos3, pos2, pos5, pos6, pos1]
+    // After rotation: pos4←pos5, pos3←pos4, pos2←pos3, pos5←pos6, pos6←pos1, pos1←pos2
+    const [p4, p3, p2, p5, p6, p1] = activeLineup;
+    const rotated = [p5, p4, p3, p6, p1, p2];
+    set({ activeLineup: rotated });
+  },
 
   ballOver: () => {
     const { completedTouches, allSequences, currentSequenceNumber } = get();

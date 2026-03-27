@@ -19,6 +19,7 @@ export function PlayerGrid({ players, positions }: PlayerGridProps) {
   const activeLineup = useMatchStore((s) => s.activeLineup);
   const selectPlayer = useMatchStore((s) => s.selectPlayer);
   const startSub = useMatchStore((s) => s.startSub);
+  const rotateLineup = useMatchStore((s) => s.rotateLineup);
   const selectSubIn = useMatchStore((s) => s.selectSubIn);
   const selectSubOut = useMatchStore((s) => s.selectSubOut);
 
@@ -83,7 +84,13 @@ export function PlayerGrid({ players, positions }: PlayerGridProps) {
   return (
     <div>
       {lineup.length > 0 && !subState && (
-        <div className="flex justify-end mb-2">
+        <div className="flex justify-end gap-2 mb-2">
+          <button
+            onClick={() => rotateLineup()}
+            className="px-3 py-1.5 rounded-lg border-2 border-blue-300 text-blue-600 text-xs font-bold hover:bg-blue-50 transition-colors"
+          >
+            Rotate ↻
+          </button>
           <button
             onClick={() => startSub()}
             className="px-3 py-1.5 rounded-lg border-2 border-orange-300 text-orange-600 text-xs font-bold hover:bg-orange-50 transition-colors"
