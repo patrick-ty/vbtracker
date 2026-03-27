@@ -49,7 +49,7 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
         </div>
 
         {/* Col 3: Scoreboard + Set cards */}
-        <div style={{ flex: 1, padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 32 }}>
+        <div style={{ flex: 1, padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 60 }}>
           {/* Score */}
           <div className="flex items-end gap-10">
             <div className="text-center">
@@ -64,16 +64,26 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
           </div>
 
           {/* Set cards — vertical stack */}
-          {allSets.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              {allSets.map((s) => {
+          {(() => {
+            // TODO: remove mock sets after testing
+            const mockSets = [
+              { setNumber: 1, ourScore: 25, theirScore: 20, status: 'completed' as const },
+              { setNumber: 2, ourScore: 19, theirScore: 25, status: 'completed' as const },
+              { setNumber: 3, ourScore: 25, theirScore: 23, status: 'completed' as const },
+              { setNumber: 4, ourScore: 22, theirScore: 25, status: 'completed' as const },
+              ...allSets.map((s) => ({ ...s, setNumber: 5 })),
+            ];
+            const displaySets = mockSets.length > allSets.length ? mockSets : allSets;
+            return displaySets.length > 0 && (
+            <div className="flex flex-col items-center gap-1">
+              {displaySets.map((s) => {
                 const isActive = s.setNumber === setNumber;
                 const displayOur = isActive ? ourScore : s.ourScore;
                 const displayTheir = isActive ? theirScore : s.theirScore;
                 return (
                   <div
                     key={s.setNumber}
-                    className={`px-4 py-1.5 rounded-lg text-sm tabular-nums ${
+                    className={`px-3 py-0.5 rounded text-xs tabular-nums whitespace-nowrap ${
                       isActive
                         ? 'bg-white text-blue-700 font-black'
                         : 'bg-blue-800/40 text-blue-300'
@@ -87,7 +97,8 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
                 );
               })}
             </div>
-          )}
+          );
+          })()}
         </div>
       </div>
     </div>
