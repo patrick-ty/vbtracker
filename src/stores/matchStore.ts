@@ -492,6 +492,8 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       rallyLog: newLog,
       currentSet: { ...currentSet, ourScore: newOurScore, theirScore: newTheirScore },
       editingRallyIndex: null,
+      serve: null, completedTouches: [], allSequences: [],
+      currentSequenceNumber: 1, selectedPlayer: null, selectedType: null, editTarget: null,
       isSaving: false,
     });
   },
@@ -543,6 +545,8 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       rallyLog: newLog,
       currentSet: { ...currentSet, ourScore: newOurScore, theirScore: newTheirScore },
       editingRallyIndex: null,
+      serve: null, completedTouches: [], allSequences: [],
+      currentSequenceNumber: 1, selectedPlayer: null, selectedType: null, editTarget: null,
       isSaving: false,
     });
   },
