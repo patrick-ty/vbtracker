@@ -73,17 +73,15 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
                 return (
                   <div
                     key={s.setNumber}
-                    className={`px-3 py-1 rounded-lg text-sm tabular-nums ${
+                    className={`px-4 py-1.5 rounded-lg text-sm tabular-nums ${
                       isActive
-                        ? 'bg-white/20 text-white font-bold'
+                        ? 'bg-white text-blue-700 font-black'
                         : 'bg-blue-800/40 text-blue-300'
                     }`}
                   >
-                    <span className="font-semibold">S{s.setNumber}</span>
-                    {' '}
                     {isActive
-                      ? <span className="text-blue-200 text-xs">current</span>
-                      : <span>{displayOur}–{displayTheir}</span>
+                      ? <span>SET {s.setNumber}</span>
+                      : <><span className="font-semibold">S{s.setNumber}</span> {displayOur}–{displayTheir}</>
                     }
                   </div>
                 );
