@@ -28,15 +28,7 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
   const setNumber = currentSet?.setNumber ?? 1;
   const opponent = match.opponent_name || 'Opponent';
 
-  // TODO: remove mock sets after testing
-  const mockSets = [
-    { setNumber: 1, ourScore: 25, theirScore: 20, status: 'completed' as const },
-    { setNumber: 2, ourScore: 19, theirScore: 25, status: 'completed' as const },
-    { setNumber: 3, ourScore: 25, theirScore: 23, status: 'completed' as const },
-    { setNumber: 4, ourScore: 22, theirScore: 25, status: 'completed' as const },
-    ...allSets.map((s) => ({ ...s, setNumber: 5 })),
-  ];
-  const displaySets = mockSets.length > allSets.length ? mockSets : allSets;
+  const displaySets = allSets;
 
   return (
     <div className="bg-blue-700 text-white shrink-0 py-3">
