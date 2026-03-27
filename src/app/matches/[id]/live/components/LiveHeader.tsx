@@ -39,7 +39,7 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
         </div>
 
         {/* Col 2: Event info + Set cards below */}
-        <div style={{ width: 320, flexShrink: 0, padding: '0 24px', borderLeft: '1px solid rgba(96,165,250,0.3)', borderRight: '1px solid rgba(96,165,250,0.3)' }}>
+        <div style={{ flex: 1, padding: '0 24px', borderLeft: '1px solid rgba(96,165,250,0.3)', borderRight: '1px solid rgba(96,165,250,0.3)' }}>
           {eventName && (
             <p className="text-xl font-bold text-white leading-tight">{eventName}</p>
           )}
@@ -86,7 +86,7 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
         </div>
 
         {/* Col 3: Scoreboard */}
-        <div style={{ flex: 1, padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ flex: 2, padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="flex items-end gap-10">
             <div className="text-center">
               <p className="text-sm font-semibold text-blue-200 uppercase tracking-wide">{teamName}</p>
