@@ -41,11 +41,6 @@ export function ServeReceiveToggle() {
           Receiving
         </button>
       </div>
-      {autoSetFromSideout && !serveRecorded && (
-        <p className="text-[10px] text-gray-400 text-center mt-1">
-          {isServing ? 'Serving (won last point)' : 'Receiving (lost last point)'}
-        </p>
-      )}
     </div>
   );
 }
