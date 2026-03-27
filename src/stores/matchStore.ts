@@ -107,6 +107,7 @@ interface MatchState {
 
   // Lineup
   rotateLineup: () => void;
+  swapPositions: (jerseyA: number, jerseyB: number) => void;
 
   // Sequence
   ballOver: () => void;
@@ -602,6 +603,21 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     const newLineup = Object.values(newPositions);
 
     set({ courtPositions: newPositions, activeLineup: newLineup });
+  },
+
+  swapPositions: (jerseyA, jerseyB) => {
+    const { courtPositions } = get();
+    if (!courtPositions) return;
+
+    const newPositions = { ...courtPositions };
+    const posA = Object.entries(newPositions).find(([, j]) => j === jerseyA)?.[0];
+    const posB = Object.entries(newPositions).find(([, j]) => j === jerseyB)?.[0];
+    if (!posA || !posB) return;
+
+    newPositions[posA] = jerseyB;
+    newPositions[posB] = jerseyA;
+
+    set({ courtPositions: newPositions, activeLineup: Object.values(newPositions) });
   },
 
   ballOver: () => {
