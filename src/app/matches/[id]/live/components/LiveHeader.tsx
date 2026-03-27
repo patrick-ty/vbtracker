@@ -39,7 +39,7 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
         </div>
 
         {/* Col 2: Event info */}
-        <div style={{ width: 220, flexShrink: 0, padding: '0 24px', borderLeft: '1px solid rgba(96,165,250,0.3)', borderRight: '1px solid rgba(96,165,250,0.3)' }}>
+        <div style={{ width: 280, flexShrink: 0, padding: '0 24px', borderLeft: '1px solid rgba(96,165,250,0.3)', borderRight: '1px solid rgba(96,165,250,0.3)' }}>
           {eventName && (
             <p className="text-xl font-bold text-white leading-tight">{eventName}</p>
           )}
