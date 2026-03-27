@@ -48,9 +48,10 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
           </p>
         </div>
 
-        {/* Col 3: Scoreboard */}
-        <div style={{ flex: 1, padding: '0 24px' }}>
-          <div className="flex items-end justify-center gap-10">
+        {/* Col 3: Scoreboard + Set cards */}
+        <div style={{ flex: 1, padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 32 }}>
+          {/* Score */}
+          <div className="flex items-end gap-10">
             <div className="text-center">
               <p className="text-sm font-semibold text-blue-200 uppercase tracking-wide">{teamName}</p>
               <p className="text-5xl font-black tabular-nums leading-none mt-1">{ourScore}</p>
@@ -62,26 +63,33 @@ export function LiveHeader({ match, teamName, eventName, allSets }: LiveHeaderPr
             </div>
           </div>
 
-          {/* Set scores */}
-          <div className="flex items-center justify-center gap-3 mt-2">
-            {allSets.map((s) => {
-              const isActive = s.setNumber === setNumber;
-              const displayOur = isActive ? ourScore : s.ourScore;
-              const displayTheir = isActive ? theirScore : s.theirScore;
-              return (
-                <span
-                  key={s.setNumber}
-                  className={`text-sm tabular-nums px-3 py-0.5 rounded-full ${
-                    isActive
-                      ? 'bg-white/20 text-white font-bold'
-                      : 'text-blue-300 font-medium'
-                  }`}
-                >
-                  {isActive ? `Set ${s.setNumber}` : `S${s.setNumber} ${displayOur}–${displayTheir}`}
-                </span>
-              );
-            })}
-          </div>
+          {/* Set cards — vertical stack */}
+          {allSets.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              {allSets.map((s) => {
+                const isActive = s.setNumber === setNumber;
+                const displayOur = isActive ? ourScore : s.ourScore;
+                const displayTheir = isActive ? theirScore : s.theirScore;
+                return (
+                  <div
+                    key={s.setNumber}
+                    className={`px-3 py-1 rounded-lg text-sm tabular-nums ${
+                      isActive
+                        ? 'bg-white/20 text-white font-bold'
+                        : 'bg-blue-800/40 text-blue-300'
+                    }`}
+                  >
+                    <span className="font-semibold">S{s.setNumber}</span>
+                    {' '}
+                    {isActive
+                      ? <span className="text-blue-200 text-xs">current</span>
+                      : <span>{displayOur}–{displayTheir}</span>
+                    }
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
